@@ -163,20 +163,31 @@ local changes. To uninstall, remove only the installed `singapore-legal-research
 You can instead copy `skills/singapore-legal-research/` manually to the appropriate
 skills directory. Do not install duplicate copies under several discovery roots.
 
-## How verification works
+## How the skill works
 
-```mermaid
-flowchart TD
-    IN["Question or preserved draft"] --> MAP["Issues and location inventory"]
-    MAP --> FIND["Retrieve primary sources"]
-    FIND --> READ["Capture exact paragraphs or provisions; review identity, version, support and treatment"]
-    READ --> LEDGER["Evidence ledger and source snapshots"]
-    LEDGER --> CHECK["Offline checks: cited paragraphs or provisions, version records, quote spans, hashes and coverage"]
-    CHECK -->|"record error"| FIX["Correct evidence or disclose unresolved finding"]
-    FIX --> LEDGER
-    CHECK -->|"records consistent"| REVIEW["Re-read decisive passages and final output"]
-    REVIEW --> OUT["Answer with sources, adverse authority and explicit limits"]
-```
+The swimlanes show who performs each step and where work passes between the lawyer,
+the agent using this skill, the available research sources and the optional offline
+helpers. The source lane represents retrieval through the agent's session tools;
+the bundled Python helpers do not browse legal databases.
+
+![Swimlane diagram of the skill's research and cite-check workflow](docs/diagrams/skill-workflow.svg)
+
+[Open the full-size swimlane diagram](docs/diagrams/skill-workflow.svg). It shows the
+saved-run path; a brief chat-only answer can retain the retrieved evidence in the
+tool transcript instead.
+
+Research starts with an issue map and retrieves the complete paragraphs or provisions
+supporting each proposition. Cite-checking starts with the preserved draft and its
+location inventory, then retrieves the exact passages specified by the original
+citations. On each fresh draft, statutory checks establish the correct instrument
+and the version applicable to the relevant events.
+
+The agent reads those passages for support, context and later treatment. The helpers
+capture evidence and check its recorded spans, hashes, version receipts and coverage.
+Record errors return for correction and renewed review. Inaccessible material remains
+an explicit gap; a wrong original citation stays a finding even when a separately
+verified replacement is proposed. The lawyer receives the findings and sources for
+review. A materially revised draft starts a fresh run.
 
 The Python helper can preserve source bytes, extract Word paragraphs and notes, index
 judgment paragraph labels, pull full cited paragraphs, bind quotations to those
@@ -269,55 +280,7 @@ the original citation and any separately verified proposed correction. See
 [statutory evidence](skills/singapore-legal-research/references/statutory-evidence.md)
 for map fields, version checks, precise locators and fresh-draft requirements.
 
-## How a lawyer uses it
-
-This process model shows one practitioner preparing written submissions. The lanes
-show who is responsible for each step. The agent researches and checks the work, and
-the lawyer keeps professional responsibility for the advice, the citations and the filing.
-
-```mermaid
-flowchart TD
-    subgraph LAW["Lawyer"]
-        START(["Instruction received"]) --> SCOPE["Frame the question, forum, key facts and law-as-at date; confirm confidentiality"]
-        SCOPE --> ASK["Ask the agent: research memo, find authority or Hansard trace"]
-        VET["Read decisive passages; test the reasoning against the facts"]
-        VET --> OK{"Analysis sound?"}
-        OK -->|"no: refine question or facts"| ASK
-        OK -->|"yes"| DRAFT["Draft submissions or advice"]
-        DRAFT --> CC["Ask the agent to cite-check the Word draft"]
-        FIXD["Correct the draft; decide disputed points"]
-        FIXD --> MORE{"Material changes?"}
-        MORE -->|"yes: fresh run for the revised draft"| CC
-        MORE -->|"no"| CIT["Run an authorised citator check, e.g. LawNet, if not already done"]
-        CIT --> PD["Check applicable Practice Directions and court format"]
-        PD --> SIGN["Supervising review and sign-off"]
-        SIGN --> FILE(["Lawyer files, serves or sends"])
-    end
-    subgraph AGT["Agent with this skill"]
-        MAP["Map issues; plan sources"] --> RET["Retrieve primary sources: SSO, eLitigation, Parliament, LawNet if available"]
-        RET --> ACC{"Source accessible?"}
-        ACC -->|"no"| GAP["Record access gap; do not fill from memory"]
-        ACC -->|"yes"| SUP["Capture cited paragraphs or provisions; check instrument, version, support and treatment"]
-        GAP --> MEMO
-        SUP --> MEMO["Answer-first memo with pinpoints, limits and search coverage"]
-        INV["Inventory every body, table, footnote and endnote location"] --> ITEM["Resolve original citations; check exact passages and fresh statutory identity/version findings"]
-        ITEM --> FIND["Findings with exact find-strings, substantive issues before style"]
-    end
-    subgraph HLP["Helper script: optional saved run"]
-        LEDGER["init, snapshot, index-paragraphs, passages and extract-docx"] --> CHK{"check status"}
-        CHK -->|"fail"| REPAIR["Complete or correct the records"]
-        REPAIR --> CHK
-        CHK -->|"pass or pass-with-limits"| REC["Evidence ledger with disclosed limits"]
-    end
-    ASK --> MAP
-    RET -.-> LEDGER
-    MEMO --> VET
-    CC --> INV
-    ITEM -.-> LEDGER
-    REC -.-> FIND
-    REC -.-> MEMO
-    FIND --> FIXD
-```
+## What the lawyer receives
 
 | Hand-off | What the lawyer receives | What it does **not** settle |
 |---|---|---|
