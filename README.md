@@ -48,7 +48,7 @@ does not become binding Singapore law because the legal terminology is familiar.
 Treaties, custom, specialist jurisdictions and agency instruments require a separate
 assessment of domestic legal effect; see the [authority reference](skills/singapore-legal-research/references/sources-authority.md).
 
-## Courts and the weight of authorities
+## Stare decisis
 
 ```mermaid
 flowchart TD
