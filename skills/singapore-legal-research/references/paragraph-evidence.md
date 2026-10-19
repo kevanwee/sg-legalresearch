@@ -50,8 +50,32 @@ block can omit part of the paragraph. Preserve those continuations and distingui
 quoted paragraph labels from the current court's labels during the documented
 conversion; do not flatten every visible number into a new judgment paragraph.
 
-The indexer rejects duplicate/out-of-order labels, absent labels and lettered labels;
-the current helper supports positive integer paragraph numbers only. Unsupported
+The indexer requires consecutive integer labels (each exactly one greater than the
+last) and rejects gaps, duplicates, restarts, out-of-order or lettered labels, and
+labels appearing alone on a line. An explicitly captured excerpt can start above 1;
+the rule applies between the labels within it. A line containing only `[3]` or `36`
+is refused even at the end of the file, rather than absorbed into the preceding
+paragraph. The confirmation flag cannot override these checks, including when an
+older saved index is revalidated.
+
+If numbering restarts for a separate or dissenting opinion, preserve each opinion
+under a separate source ID and paragraph index. Keep the judgment's actual case
+name/citation; identify the opinion and judge in the source version/review note and
+in the analysis so repeated paragraph numbers are unambiguous. Numbered-style
+PDF text can also fail when a wrapped citation starts with `2 SLR 850` or a page
+number sits alone on a line. That is an ambiguous extraction, not permission to
+renumber the judgment, delete inconvenient labels or silently join lines. Prefer a
+documented extraction that preserves the source's actual structural boundaries.
+Do not switch to the older-report page fallback merely because a conversion lost
+paragraph labels that exist in the original judgment.
+
+These guards do not prove extraction completeness: losing the final label entirely,
+or a whole final paragraph, may leave no numbering gap or bare label to detect.
+Preserve original HTML paragraph boundaries/identifiers when available, and compare
+PDF/text conversions with the source. Source structure is stronger evidence than
+guessing boundaries from flattened text; keep the boundary review requirement.
+
+The current helper supports positive integer paragraph numbers only. Unsupported
 layouts or labels require manual verification and an explicit unresolved limitation
 in the saved run, rather than guessed or silently renumbered passages. The helper
 does not fetch a URL or manufacture paragraph text from a search result.

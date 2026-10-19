@@ -64,6 +64,14 @@ units. Statuses are `in-force`, `partly-in-force`, `not-in-force`, `repealed` an
 `uncertain`. A status note is required for each unit; do not rely solely on the Act's
 original commencement date. Non-operative/uncertain units remain visible limitations.
 
+The map rejects a span that contains only its label/delimiter without provision text,
+and a mapped target whose source label was lost. A label on its own line followed by
+the actual provision text is valid here: the explicit span and parent mapping define
+its boundary. Do not apply the judgment indexer's consecutive-numbering rule to
+statutes: inserted lettered sections, repeals and historical numbering can leave
+legitimate gaps. An omitted unit or lost label absent from both the extract and map
+cannot be recovered by this validation; verify the map against the original structure.
+
 Supported locator forms include `s 9A(2)(b)`, `reg 4(1)`, `r 12(3)`, `art 4`,
 `O 9 r 1(2)`, and `First Schedule para 2(1)(a)`; single-unit long forms such as
 `section 9A(2)` are accepted. Unsupported layouts or locator syntax require manual

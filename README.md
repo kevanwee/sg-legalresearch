@@ -229,6 +229,12 @@ actual provision/column/page locators. See [paragraph evidence](skills/singapore
 for the workflow, original-citation findings, source-format limits and migration of
 earlier saved runs.
 
+The text indexer refuses numbering gaps, restarts and labels on their own lines,
+instead of silently merging paragraphs. Split separately numbered opinions into
+separate sources and prefer extraction that preserves the original source structure.
+These checks catch ambiguity; they do not prove a conversion retained every paragraph.
+Statutory numbering follows the explicit provision map below, without a consecutive-number rule.
+
 ### Statutory provisions and fresh-draft checks
 
 Statutory citations receive three separate checks:

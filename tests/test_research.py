@@ -258,6 +258,71 @@ class EvidenceTests(unittest.TestCase):
             with self.subTest(pin=pin), self.assertRaises(ValueError):
                 r.parse_pinpoint(pin)
 
+    def test_missing_middle_label_and_spurious_number_are_rejected(self):
+        examples = [
+            ("bracketed", "[1] First paragraph.\nSecond paragraph without its label.\n[3] Third paragraph."),
+            ("numbered", "35 First paragraph.\nNext paragraph without its label.\n37 Third paragraph."),
+            ("bracketed", "[1] First paragraph.\n[2] Second paragraph.\n[100] Spurious number."),
+            ("numbered", "35 First paragraph.\n36 Second paragraph.\n100 Spurious number."),
+        ]
+        for style, text in examples:
+            with self.subTest(style=style, text=text), self.assertRaisesRegex(ValueError, "must be consecutive"):
+                r.build_paragraphs(text, style)
+
+    def test_bare_labels_cannot_be_merged_into_previous_paragraph(self):
+        for style, first, bare, last in (("bracketed", "[1]", "[2]", "[3]"), ("numbered", "35", "36", "37")):
+            for ending in ("\n", "\r\n"):
+                examples = [
+                    first + " First paragraph." + ending + bare + ending + "Second paragraph." + ending + last + " Third paragraph.",
+                    first + " First paragraph." + ending + bare,
+                    first + " First paragraph." + ending + "\u2003" + bare + "\u00a0\t" + ending + "Second paragraph.",
+                ]
+                for text in examples:
+                    with self.subTest(style=style, text=text), self.assertRaisesRegex(ValueError, "on its own line"):
+                        r.build_paragraphs(text, style)
+
+    def test_numbered_report_reference_on_wrapped_line_fails_loudly(self):
+        text = "35 A wrapped reference to [2017]\n2 SLR 850 continues here.\n36 The next paragraph."
+        with self.assertRaisesRegex(ValueError, "must be consecutive"):
+            r.build_paragraphs(text, "numbered")
+
+    def test_numbering_restart_requires_separate_opinion_sources(self):
+        with self.assertRaisesRegex(ValueError, "must be consecutive"):
+            r.build_paragraphs("[1] Majority.\n[2] Majority continues.\n[1] Separate opinion.", "bracketed")
+        self.assertEqual(len(r.build_paragraphs("[1] Separate opinion.\n[2] Continued.", "bracketed")), 2)
+
+    def test_reviewed_excerpt_can_start_above_one(self):
+        rows = r.build_paragraphs("[35] First captured paragraph.\n[36] Second captured paragraph.", "bracketed")
+        self.assertEqual([p["paragraph"] for p in rows], [35, 36])
+
+    def test_old_merged_index_cannot_pass_even_with_boundary_confirmation(self):
+        text = "[1] First paragraph.\nMisplaced second paragraph.\n[3] Third paragraph."
+        source = self.data["sources"][0]
+        path = r.inside(self.run, source["file"])
+        path.write_text(text, encoding="utf-8")
+        source["sha256"] = source["text_sha256"] = r.digest(path)
+        split = text.index("[3]")
+        rows = [{"paragraph": 1, "start": 4, "end": split - 1, "text": text[4:split - 1]},
+                {"paragraph": 3, "start": split + 4, "end": len(text), "text": text[split + 4:]}]
+        source.update(kind="case", paragraph_index={"style": "bracketed", "text_sha256": source["text_sha256"],
+            "boundaries_reviewed": True, "review_note": "Prior review declaration cannot override broken numbering.", "paragraphs": rows},
+            treatment={"status": "not-checked", "note": "Synthetic fixture.", "search_ids": []})
+        self.data["claims"][0]["evidence"][0]["passages"] = [rows[0]]
+        words = "Misplaced second paragraph."
+        start = text.index(words)
+        self.data["quotes"] = [self.quote(words, start, start + len(words))]
+        self.assertTrue(any("must be consecutive" in e for e in self.report()["errors"]))
+
+    def test_failed_indexing_does_not_save_a_partial_index(self):
+        source = self.data["sources"][0]
+        path = r.inside(self.run, source["file"])
+        path.write_text("[1] First.\n[3] Third.", encoding="utf-8")
+        source["sha256"] = source["text_sha256"] = r.digest(path)
+        self.save()
+        with self.assertRaisesRegex(ValueError, "must be consecutive"):
+            r.index_paragraphs(self.run, "S1", "bracketed", "Checked boundaries.")
+        self.assertNotIn("paragraph_index", r.load_run(self.run)["sources"][0])
+
     def as_cited(self, pin="[1]", status="supported"):
         self.case_source()
         self.data["mode"] = "cite-check"

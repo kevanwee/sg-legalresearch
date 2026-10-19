@@ -106,15 +106,19 @@ def build_paragraphs(text, style):
     if style not in ("bracketed", "numbered"):
         raise ValueError("paragraph style must be bracketed or numbered")
     label = r"\[([1-9]\d*)\]" if style == "bracketed" else r"([1-9]\d*)"
+    horizontal = r"[\t \u00a0\u2000-\u200a]"
+    if re.search(r"^" + horizontal + "*" + label + horizontal + r"*\r?$", text, re.M):
+        raise ValueError("paragraph label on its own line; use an extraction that preserves paragraph boundaries")
     lettered = r"\[[1-9]\d*[A-Za-z]\]" if style == "bracketed" else r"[1-9]\d*[A-Za-z]"
-    if re.search(r"^[ \t]*" + lettered + r"[\t \u00a0\u2000-\u200a]+", text, re.M):
+    if re.search(r"^" + horizontal + "*" + lettered + r"(?=" + horizontal + r"|\r?$)", text, re.M):
         raise ValueError("lettered paragraph labels need manual verification; this indexer supports integer labels only")
-    matches = list(re.finditer(r"^[ \t]*" + label + r"[\t \u00a0\u2000-\u200a]+(?=\S)", text, re.M))
+    matches = list(re.finditer(r"^" + horizontal + "*" + label + horizontal + r"+(?=\S)", text, re.M))
     if not matches:
         raise ValueError("no explicit paragraph labels found; use a suitable source text extraction")
     numbers = [int(m[1]) for m in matches]
-    if any(b <= a for a, b in zip(numbers, numbers[1:])):
-        raise ValueError("duplicate or out-of-order paragraph labels; inspect extraction/footnotes")
+    for previous, current in zip(numbers, numbers[1:]):
+        if current != previous + 1:
+            raise ValueError(f"paragraph numbering must be consecutive; found {previous} then {current}. Check extraction or split separate opinions")
     rows = []
     for i, match in enumerate(matches):
         start = match.end()

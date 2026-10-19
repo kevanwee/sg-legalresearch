@@ -130,6 +130,45 @@ class StatutoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "correct provision label"):
             r.build_provisions(TEXT, manifest)
 
+    def test_lost_target_label_in_conversion_is_rejected(self):
+        changed = TEXT.replace("(b)", "   ", 1)
+        with self.assertRaisesRegex(ValueError, "correct provision label"):
+            r.build_provisions(changed, self.manifest)
+
+    def test_label_only_unit_is_not_provision_evidence(self):
+        for locator, text in (("s 9A", "9A."), ("s 9A", "9A.—\n"), ("s 9A", "9A.\u2009—\u00a0"), ("O 9", "ORDER 9"), ("First Schedule", "FIRST SCHEDULE")):
+            manifest = {"provisions": [{"locator": locator, "start": 0, "end": len(text), "status": "in-force", "status_note": "Synthetic fixture."}]}
+            with self.subTest(locator=locator, text=text), self.assertRaisesRegex(ValueError, "only a label"):
+                r.build_provisions(text, manifest)
+
+    def test_label_only_child_is_not_subsection_evidence(self):
+        text = "9A.—(1)"
+        manifest = {"provisions": [
+            {"locator": "s 9A", "start": 0, "end": len(text), "status": "in-force", "status_note": "Synthetic."},
+            {"locator": "s 9A(1)", "start": 4, "end": len(text), "status": "in-force", "status_note": "Synthetic."}]}
+        with self.assertRaisesRegex(ValueError, "only a label"):
+            r.build_provisions(text, manifest)
+
+    def test_explicit_map_handles_label_on_its_own_line(self):
+        text = "9A.\nA complete synthetic provision.\n"
+        manifest = {"provisions": [{"locator": "s 9A", "start": 0, "end": len(text), "status": "in-force", "status_note": "Synthetic fixture."}]}
+        rows = r.build_provisions(text, manifest)
+        self.assertEqual(rows[0]["text"], text)
+
+    def test_statutory_gaps_and_inserted_section_numbers_are_valid(self):
+        text = "9A.—First unit.\n9AA.—Inserted unit.\n12.—Later unit after a numbering gap."
+        starts = [0, text.index("9AA."), text.index("12."), len(text)]
+        manifest = {"provisions": [{"locator": locator, "start": starts[i], "end": starts[i + 1],
+                     "status": "in-force", "status_note": "Synthetic numbering checked."}
+                    for i, locator in enumerate(("s 9A", "s 9AA", "s 12"))]}
+        self.assertEqual(len(r.build_provisions(text, manifest)), 3)
+
+    def test_sibling_provisions_cannot_be_merged_in_the_map(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest["provisions"][3]["end"] = manifest["provisions"][4]["end"]
+        with self.assertRaisesRegex(ValueError, "sibling provision spans overlap"):
+            r.build_provisions(TEXT, manifest)
+
     def test_child_must_belong_to_its_actual_parent(self):
         manifest = copy.deepcopy(self.manifest)
         manifest["provisions"][0]["end"] = TEXT.index("(2)")

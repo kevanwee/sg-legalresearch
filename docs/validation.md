@@ -18,11 +18,19 @@ multi-paragraph ranges, missing paragraphs, incorrect relabelling, changed index
 quotes matching elsewhere in a judgment, original citations and proposed corrections,
 and documented page fallbacks. Boundary review and semantic support remain reviewer
 judgments; a parser cannot certify official paragraph boundaries from arbitrary text.
+Regression cases also cover lost middle labels, bare labels (including terminal labels
+and CRLF text), spurious high numbers, opinion numbering restarts, wrapped report
+citations, and previously saved merged indexes that carry a boundary confirmation.
+The text indexer rejects these ambiguous inputs rather than merging or repairing them;
+entirely lost terminal labels/paragraphs still require comparison with the source.
 Statutory tests cover exact provision spans and parent hierarchy, quotes from the
 wrong section/sibling, rules/orders/schedules, missing units, source/version date
 mismatches, wrong-instrument and wrong-version findings, original versus corrected
 provisions, and verification records tied to the current run, research date and
 draft hash. Tests use synthetic statute text, not a claim of automatic SSO parsing.
+They also cover lost target labels, label-only provision captures and overlapping
+siblings while preserving legitimate statutory numbering gaps and explicitly mapped
+labels on separate lines. Statutory numbering is not subject to the case-law +1 rule.
 
 Repository checks cover Python syntax, required skill identity and UI invocation,
 relative Markdown links and anchors, and code-fence balance. They do not fetch every

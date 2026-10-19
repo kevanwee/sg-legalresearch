@@ -59,8 +59,11 @@ def build_provisions(text, manifest):
         if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(text):
             raise ValueError("invalid provision source span")
         passage = text[start:end]
-        if not re.match(label, passage, re.I):
+        label_match = re.match(label, passage, re.I)
+        if not label_match:
             raise ValueError(f"{locator}: source span does not begin with the correct provision label")
+        if not re.search(r"[^\s.—–:\-]", passage[label_match.end():]):
+            raise ValueError(f"{locator}: source span contains only a label, not the provision text")
         if item.get("status") not in ("in-force", "partly-in-force", "not-in-force", "repealed", "uncertain") or not isinstance(item.get("status_note"), str) or not item["status_note"].strip():
             raise ValueError(f"{locator}: record provision-specific operative status and status_note")
         row = {"locator": locator, "parent": parent, "start": start, "end": end,
