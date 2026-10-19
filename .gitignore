@@ -1,0 +1,14 @@
+.local/
+runs/
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+*.pdf
+*.docx
+*.doc
+*.zip
+.DS_Store
+Thumbs.db
