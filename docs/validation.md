@@ -12,7 +12,10 @@ python scripts/validate_repository.py
 Synthetic fixtures exercise source and draft immutability, path containment, review
 flags, exact quote spans, incorrect text, missing source links, subsequent-treatment
 records, legislative version-review requirements, duplicate library records, and Word
-body/table/footnote/endnote coverage. Installer tests use temporary directories.
+body/table/footnote/endnote coverage. Installer tests use temporary directories and
+run copied helpers under `-I`, `-P` and `PYTHONSAFEPATH=1` from another directory,
+including with an unrelated `statutory.py` on `PYTHONPATH`. Path-based import tests
+also verify that loading the installed helper does not modify `sys.path`.
 Paragraph-evidence regressions cover paraphrases requiring complete paragraphs,
 multi-paragraph ranges, missing paragraphs, incorrect relabelling, changed indexes,
 quotes matching elsewhere in a judgment, original citations and proposed corrections,
@@ -31,6 +34,9 @@ draft hash. Tests use synthetic statute text, not a claim of automatic SSO parsi
 They also cover lost target labels, label-only provision captures and overlapping
 siblings while preserving legitimate statutory numbering gaps and explicitly mapped
 labels on separate lines. Statutory numbering is not subject to the case-law +1 rule.
+Repealed and not-in-force units cannot support an unqualified claim without an
+evidence-level date explanation; qualified findings and explained comparisons retain
+their visible status limits.
 
 Repository checks cover Python syntax, required skill identity and UI invocation,
 relative Markdown links and anchors, and code-fence balance. They do not fetch every

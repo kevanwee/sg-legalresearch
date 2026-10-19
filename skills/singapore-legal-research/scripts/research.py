@@ -4,6 +4,7 @@
 import argparse
 from datetime import date, datetime, timezone
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -14,7 +15,19 @@ import uuid
 import xml.etree.ElementTree as ET
 import zipfile
 
-from statutory import canonical_provision, build_provisions, checked_provisions, select_provision, verify_statute_receipt
+# Load the bundled sibling explicitly: isolated/safe-path Python omits this folder
+# from sys.path, and a working-directory/PYTHONPATH module must not replace it.
+_statutory_spec = importlib.util.spec_from_file_location(
+    "_sg_legalresearch_statutory", Path(__file__).resolve().with_name("statutory.py"))
+if _statutory_spec is None or _statutory_spec.loader is None:
+    raise ImportError("Cannot load the bundled statutory.py helper")
+_statutory = importlib.util.module_from_spec(_statutory_spec)
+_statutory_spec.loader.exec_module(_statutory)
+canonical_provision = _statutory.canonical_provision
+build_provisions = _statutory.build_provisions
+checked_provisions = _statutory.checked_provisions
+select_provision = _statutory.select_provision
+verify_statute_receipt = _statutory.verify_statute_receipt
 
 MODES = ("research", "deep-research", "find-authority", "cite-check",
          "legislation-hansard", "case-prep", "library", "proofread")
@@ -508,6 +521,10 @@ def check_run(root):
                     for p in expected:
                         if p["status"] != "in-force":
                             limits.append(f"{key}: {p['locator']} {p['status']}: {p['status_note']}")
+                        if (p["status"] in ("repealed", "not-in-force") and assessment == "supported"
+                                and not nonempty(ref.get("date_basis"))):
+                            errors.append(f"{key}: {p['locator']} {p['status']} needs a qualified claim "
+                                          "or evidence date_basis explaining historical or saved application")
                 except ValueError as exc:
                     errors.append(f"{key}: {exc}")
 

@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -15,6 +16,48 @@ spec.loader.exec_module(installer)
 
 
 class PackagingTests(unittest.TestCase):
+    def test_installed_cli_starts_in_safe_path_modes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = installer.install("codex", Path(folder) / "skills")
+            script = destination / "scripts/research.py"
+            # Neither a working-directory module nor PYTHONPATH may replace the sibling.
+            (Path(folder) / "statutory.py").write_text(
+                "raise RuntimeError('Unrelated working-directory module loaded')\n", encoding="utf-8")
+            env = dict(os.environ, PYTHONPATH=folder)
+            for name, flags, extra_env in (("isolated", ["-I"], {}), ("safe-path", ["-P"], {}),
+                                           ("environment", [], {"PYTHONSAFEPATH": "1"})):
+                with self.subTest(mode=name):
+                    run = Path(folder) / name
+                    args = [sys.executable, *flags, str(script), "init", str(run),
+                            "--question", "Synthetic safe-path question", "--research-date", "2026-10-20",
+                            "--law-as-at", "2026-10-20"]
+                    result = subprocess.run(args, capture_output=True, text=True, cwd=folder, env=env | extra_env)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(json.loads((run / "run.json").read_text(encoding="utf-8"))["question"],
+                                     "Synthetic safe-path question")
+                    checked = subprocess.run([sys.executable, *flags, str(script), "check", str(run)],
+                                             capture_output=True, text=True, cwd=folder, env=env | extra_env)
+                    self.assertEqual(checked.returncode, 1, checked.stderr)
+                    self.assertEqual(json.loads(checked.stdout)["status"], "fail")
+
+    def test_installed_helper_imports_by_path_without_changing_sys_path(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = installer.install("codex", Path(folder) / "skills")
+            script = destination / "scripts/research.py"
+            program = """import importlib.util, sys
+before = list(sys.path)
+spec = importlib.util.spec_from_file_location('installed_research', sys.argv[1])
+research = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(research)
+assert research.canonical_provision('section 9A(2)') == 's 9A(2)'
+assert sys.path == before
+"""
+            for flags in ([], ["-I"], ["-P"]):
+                with self.subTest(flags=flags):
+                    result = subprocess.run([sys.executable, *flags, "-c", program, str(script)],
+                                            capture_output=True, text=True, cwd=folder)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_install_is_self_contained_and_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as folder:
             destination = installer.install("codex", Path(folder) / "skills")

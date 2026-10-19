@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1680" height="940" viewBox="0 0 1680 940" role="img" aria-labelledby="title description">
   <title id="title">How the Singapore legal research skill works</title>
-  <desc id="description">Four horizontal swimlanes show the lawyer, agent using the skill, research sources, and optional offline helpers. The lawyer supplies a question or draft. The agent scopes the task, plans research or inventories citations, and retrieves primary sources using session research tools. Saved runs capture sources and exact passages. The agent evaluates legal support, instrument identity, applicable version and treatment. Helpers check record consistency. Errors return for correction and renewed review. The agent delivers pinpointed research or cite-check findings, with gaps, for the lawyer to review.</desc>
+  <desc id="description">Four horizontal swimlanes show the lawyer, agent using the skill, research sources, and optional offline helpers. The lawyer supplies a question or draft. The agent scopes the task, plans research or inventories citations, and retrieves primary sources using session research tools. Saved runs capture sources and exact passages. The agent evaluates legal support, instrument identity, applicable version and treatment. Helpers check record consistency. Errors return for correction and renewed review. The agent delivers pinpointed research or cite-check findings, with gaps, for the lawyer to review. The lawyer then completes applicable citator checks, court-format checks and sign-off before filing, serving or sending.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker>
     <style>
@@ -56,6 +56,11 @@
   <path d="M 1400 763 V 826 H 820 V 727 H 860" class="flow"/>
   <text x="1020" y="814" class="label">No: correct records or record a genuine limit; repeat review</text>
   <path d="M 1530 302 V 222" class="flow"/>
+  <path d="M 1530 128 V 108 H 540 V 128" class="flow"/>
+  <text x="904" y="102" class="label">After review: applicable professional checks and delivery</text>
+  <path d="M 650 175 H 670" class="flow"/>
+  <path d="M 890 175 H 910" class="flow"/>
+  <path d="M 1130 175 H 1150" class="flow"/>
 
   <!-- Lawyer tasks. -->
   <rect x="200" y="128" width="200" height="94" rx="12" class="task"/>
@@ -66,6 +71,22 @@
   <text x="1530" y="157" class="task-title">Review and decide</text>
   <text x="1530" y="182" class="task-text">Read decisive passages</text>
   <text x="1530" y="204" class="task-text">Resolve gaps; revise as needed</text>
+  <rect x="430" y="128" width="220" height="94" rx="12" class="task"/>
+  <text x="540" y="157" class="task-title">Check later treatment</text>
+  <text x="540" y="182" class="task-text">Authorised citator if available</text>
+  <text x="540" y="204" class="task-text">Retain any access limitation</text>
+  <rect x="670" y="128" width="220" height="94" rx="12" class="task"/>
+  <text x="780" y="157" class="task-title">Check court format</text>
+  <text x="780" y="182" class="task-text">Applicable Practice Directions</text>
+  <text x="780" y="204" class="task-text">Filing and bundle requirements</text>
+  <rect x="910" y="128" width="220" height="94" rx="12" class="task"/>
+  <text x="1020" y="157" class="task-title">Review and sign off</text>
+  <text x="1020" y="182" class="task-text">Resolve outstanding issues</text>
+  <text x="1020" y="204" class="task-text">Professional responsibility</text>
+  <rect x="1150" y="128" width="220" height="94" rx="12" class="task"/>
+  <text x="1260" y="157" class="task-title">File, serve or send</text>
+  <text x="1260" y="182" class="task-text">Lawyer-controlled action</text>
+  <text x="1260" y="204" class="task-text">Separate from skill execution</text>
 
   <!-- Agent tasks describe instructions and judgment, not automated script powers. -->
   <rect x="200" y="302" width="200" height="110" rx="12" class="task"/>

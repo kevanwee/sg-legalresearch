@@ -138,6 +138,8 @@ The reference PDFs are not redistributed; their titles, sections and fingerprint
 Requirements: a skill-capable agent, Python **3.11+** for the optional helpers, and live
 research access for current external verification. The helpers use only the Python
 standard library. No API keys are required by this package.
+The installed helper also supports `python -I`, `python -P` and `PYTHONSAFEPATH=1`;
+its bundled statutory module is loaded by file path without modifying `sys.path`.
 
 Clone the repository, then install the skill for the runtime you use:
 
@@ -280,6 +282,13 @@ the original citation and any separately verified proposed correction. See
 [statutory evidence](skills/singapore-legal-research/references/statutory-evidence.md)
 for map fields, version checks, precise locators and fresh-draft requirements.
 
+Parent lead-in words remain context when a child is cited: to verify a quotation from
+the opening of `s 9A(2)`, cite and capture `s 9A(2)` itself. Definition-specific locators
+such as `s 2(1) definition of "x"` are not parsed; capture the whole `s 2(1)` and identify
+the definition in the analysis, or disclose a manual-verification limit. A `supported`
+claim relying on a `repealed` or `not-in-force` unit needs an evidence `date_basis`
+explaining its use; otherwise qualify the claim. The status remains a disclosed limit.
+
 ## What the lawyer receives
 
 | Hand-off | What the lawyer receives | What it does **not** settle |
@@ -291,6 +300,9 @@ for map fields, version checks, precise locators and fresh-draft requirements.
 
 The skill never files, serves, uploads or sends material on its own initiative. A
 revised draft needs a fresh run because each saved run keeps its draft snapshot fixed.
+For advice or court work, the lawyer completes the applicable citator/treatment check,
+Practice Directions and formatting checks, and professional sign-off before filing,
+serving or sending. Any unavailable citator access remains an explicit research limit.
 
 ## Development and validation
 

@@ -11,7 +11,6 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "skills/singapore-legal-research/scripts/research.py"
-sys.path.insert(0, str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location("statutory_research", SCRIPT)
 r = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(r)
@@ -284,7 +283,46 @@ class StatutoryTests(unittest.TestCase):
         row = next(p for p in source["provision_index"]["provisions"] if p["locator"] == "s 9A(2)(a)")
         row.update(status="not-in-force", status_note="Synthetic deferred commencement.")
         self.data["claims"][0]["evidence"][0]["passages"] = [copy.deepcopy(row)]
-        self.assertTrue(any("not-in-force" in limit for limit in self.report()["limits"]))
+        self.data["claims"][0]["assessment"] = "qualified"
+        report = self.report()
+        self.assertFalse(report["errors"])
+        self.assertTrue(any("not-in-force" in limit for limit in report["limits"]))
+
+    def test_nonoperative_provision_cannot_support_unqualified_current_claim(self):
+        row = next(p for p in self.data["sources"][0]["provision_index"]["provisions"]
+                   if p["locator"] == "s 9A(2)(a)")
+        ref = self.data["claims"][0]["evidence"][0]
+        for status in ("repealed", "not-in-force"):
+            for basis in (None, "", "   "):
+                with self.subTest(status=status, date_basis=basis):
+                    row.update(status=status, status_note="Synthetic non-operative provision.")
+                    ref.update(passages=[copy.deepcopy(row)], date_basis=basis)
+                    report = self.report()
+                    self.assertTrue(any("needs a qualified claim" in e for e in report["errors"]))
+                    self.assertTrue(any(status in limit for limit in report["limits"]))
+
+    def test_nonoperative_provision_with_explained_date_basis_passes_with_limit(self):
+        row = next(p for p in self.data["sources"][0]["provision_index"]["provisions"]
+                   if p["locator"] == "s 9A(2)(a)")
+        ref = self.data["claims"][0]["evidence"][0]
+        for status in ("repealed", "not-in-force"):
+            with self.subTest(status=status):
+                row.update(status=status, status_note="Synthetic non-operative provision.")
+                ref.update(passages=[copy.deepcopy(row)],
+                           date_basis="Synthetic comparison of wording before it became operative or was repealed.")
+                report = self.report()
+                self.assertFalse(report["errors"])
+                self.assertTrue(any(status in limit for limit in report["limits"]))
+
+    def test_repealed_provision_can_be_a_qualified_finding(self):
+        row = next(p for p in self.data["sources"][0]["provision_index"]["provisions"]
+                   if p["locator"] == "s 9A(2)(a)")
+        row.update(status="repealed", status_note="Synthetic repeal.")
+        self.data["claims"][0]["evidence"][0]["passages"] = [copy.deepcopy(row)]
+        self.data["claims"][0]["assessment"] = "qualified"
+        report = self.report()
+        self.assertFalse(report["errors"])
+        self.assertTrue(any("repealed" in limit for limit in report["limits"]))
 
     def test_missing_or_unsupported_locator_is_not_guessed(self):
         rows = self.data["sources"][0]["provision_index"]["provisions"]

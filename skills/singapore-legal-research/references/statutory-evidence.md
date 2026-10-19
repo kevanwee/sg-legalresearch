@@ -36,6 +36,8 @@ retain the full enclosing `s 9A(2)` and `s 9A` as context so the lead-in, qualif
 and sibling exceptions can be read. Retrieve relevant definitions, schedules and
 cross-referenced provisions separately. Parent context does not authorise quoting
 an uncited sibling as if it came from the cited leaf provision.
+The same rule applies to a parent's lead-in words: a quotation from the opening of
+`s 9A(2)` needs that parent as a cited evidence unit, rather than only `s 9A(2)(b)`.
 
 The helper uses a **reviewed provision map**, not a universal statutory-layout parser.
 Obtain the hierarchy and complete boundaries from the actual source or a documented
@@ -63,6 +65,11 @@ checks the source label, enforces containment, and rejects overlapping unrelated
 units. Statuses are `in-force`, `partly-in-force`, `not-in-force`, `repealed` and
 `uncertain`. A status note is required for each unit; do not rely solely on the Act's
 original commencement date. Non-operative/uncertain units remain visible limitations.
+If a cited unit is `repealed` or `not-in-force`, a `supported` claim must include
+`date_basis` on that evidence reference explaining historical comparison, relevant
+events or saved application. Without that explanation, qualify the claim or record
+it as unsupported/unresolved as appropriate; the checker rejects an unqualified
+`supported` claim. A non-empty explanation records review, not proof of applicability.
 
 The map rejects a span that contains only its label/delimiter without provision text,
 and a mapped target whose source label was lost. A label on its own line followed by
@@ -77,6 +84,9 @@ Supported locator forms include `s 9A(2)(b)`, `reg 4(1)`, `r 12(3)`, `art 4`,
 `section 9A(2)` are accepted. Unsupported layouts or locator syntax require manual
 review and a disclosed limitation, not invented labels. Split multi-section/range
 citations into individual provision findings; do not silently truncate a range.
+Definition-specific locators such as `s 2(1) definition of "x"` are not supported.
+Cite and capture the whole subsection and identify the definition in the analysis,
+or record a manual-verification limitation without inventing a parsed locator.
 
 ## Verify identity and version for this run and draft
 

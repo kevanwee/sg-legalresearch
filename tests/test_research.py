@@ -7,11 +7,9 @@ from pathlib import Path
 import tempfile
 import unittest
 import zipfile
-import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "skills/singapore-legal-research/scripts/research.py"
-sys.path.insert(0, str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location("research", SCRIPT)
 r = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(r)
