@@ -66,7 +66,8 @@ def write_json(path, value, *, new=False):
             stream.write(text)
     else:
         temporary = path.with_name(path.name + ".tmp")
-        with temporary.open("x", encoding="utf-8", newline="\n") as stream:
+        # "w": a temporary file left by an interrupted write must not block the run.
+        with temporary.open("w", encoding="utf-8", newline="\n") as stream:
             stream.write(text)
         temporary.replace(path)
 

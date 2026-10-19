@@ -5,7 +5,7 @@ the attached style guides are editorial references, not a current legislation se
 
 ## Current citation and historical identity
 
-[Interpretation Act 1965, s 8](https://sso.agc.gov.sg/Act/IA1965?ProvIds=P12-)
+[Interpretation Act 1965, s 8](https://sso.agc.gov.sg/Act/IA1965?ProvIds=pr8-)
 sets out permissible ways of referring to written laws. Distinguish that legal
 sufficiency rule from a court's or publisher's more detailed citation format.
 

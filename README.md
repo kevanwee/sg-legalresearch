@@ -61,8 +61,10 @@ flowchart TD
     end
     CA -->|"applicable holdings bind lower courts"| AD
     CA -->|"applicable holdings bind lower courts"| GD
-    AD -.->|"relevant appellate precedent"| GD
-    GD -->|"relevant superior-court precedent"| LOWER["State Courts and other lower courts"]
+    AD -->|"applicable holdings bind lower courts"| GD
+    CA --> LOWER["State Courts and other lower courts"]
+    AD --> LOWER
+    GD -->|"relevant superior-court precedent"| LOWER
     SPECIAL["Family, Syariah and specialist regimes"] -.->|"check governing statute and jurisdiction"| CHECK["Issue-specific authority assessment"]
     LOWER --> CHECK
     FOREIGN["Foreign judgments and secondary sources"] -.->|"persuasive analysis"| CHECK
@@ -114,8 +116,9 @@ Public judgment searches are not comprehensive citator checks.
 
 ## Statute citations have changed
 
-The skill checks current AGC guidance alongside the supplied 2021 SLR and 2007 SAL
-guides. Modern short titles include the relevant year. A current reference such as
+The skill checks current AGC guidance alongside the 2021 SLR style guide and the 2007
+SAL quick reference. Those guides are not bundled; the skill records their section
+references and file fingerprints, and links public reading copies. Modern short titles include the relevant year. A current reference such as
 `Interpretation Act 1965 s 9A` differs from an edition-specific SLR-style reference,
 `Interpretation Act 1965 (2020 Rev Ed) s 9A`, and from a historical chapter citation.
 
@@ -181,10 +184,10 @@ export reviewed CSL-JSON records. The agent must identify individual citations, 
 the sources, assess support, and check subsequent treatment. A passing check is **not**
 a finding that the law is correct, complete, current or suitable for filing.
 
-For example, initialise a private saved run (substitute the actual question and dates):
+For example, initialise a private saved cite-check run (substitute the actual question and dates):
 
 ```sh
-python skills/singapore-legal-research/scripts/research.py init runs/example --question "Research question" --research-date 2026-10-20 --law-as-at 2026-10-20
+python skills/singapore-legal-research/scripts/research.py init runs/example --mode cite-check --question "Cite-check the draft submissions" --research-date 2026-10-20 --law-as-at 2026-10-20
 python skills/singapore-legal-research/scripts/research.py extract-docx runs/example path/to/draft.docx
 python skills/singapore-legal-research/scripts/research.py check runs/example
 ```
@@ -195,6 +198,66 @@ Full commands, JSON fields, quotation offsets, and check status meanings are in 
 Store actual research outside this public repository where practical. `runs/`, local
 working material, PDFs, Word documents and environment files are ignored as a safeguard.
 Ignoring a file does not remove it if someone has already committed it.
+
+## How a lawyer uses it
+
+This process model shows one practitioner preparing written submissions. The lanes
+show who is responsible for each step. The agent researches and checks the work, and
+the lawyer keeps professional responsibility for the advice, the citations and the filing.
+
+```mermaid
+flowchart TD
+    subgraph LAW["Lawyer"]
+        START(["Instruction received"]) --> SCOPE["Frame the question, forum, key facts and law-as-at date; confirm confidentiality"]
+        SCOPE --> ASK["Ask the agent: research memo, find authority or Hansard trace"]
+        VET["Read decisive passages; test the reasoning against the facts"]
+        VET --> OK{"Analysis sound?"}
+        OK -->|"no: refine question or facts"| ASK
+        OK -->|"yes"| DRAFT["Draft submissions or advice"]
+        DRAFT --> CC["Ask the agent to cite-check the Word draft"]
+        FIXD["Correct the draft; decide disputed points"]
+        FIXD --> MORE{"Material changes?"}
+        MORE -->|"yes: fresh run for the revised draft"| CC
+        MORE -->|"no"| CIT["Run an authorised citator check, e.g. LawNet, if not already done"]
+        CIT --> PD["Check applicable Practice Directions and court format"]
+        PD --> SIGN["Supervising review and sign-off"]
+        SIGN --> FILE(["Lawyer files, serves or sends"])
+    end
+    subgraph AGT["Agent with this skill"]
+        MAP["Map issues; plan sources"] --> RET["Retrieve primary sources: SSO, eLitigation, Parliament, LawNet if available"]
+        RET --> ACC{"Source accessible?"}
+        ACC -->|"no"| GAP["Record access gap; do not fill from memory"]
+        ACC -->|"yes"| SUP["Check version, support, adverse authority and treatment"]
+        GAP --> MEMO
+        SUP --> MEMO["Answer-first memo with pinpoints, limits and search coverage"]
+        INV["Inventory every body, table, footnote and endnote location"] --> ITEM["Check each authority, quote, pinpoint and short form"]
+        ITEM --> FIND["Findings with exact find-strings, substantive issues before style"]
+    end
+    subgraph HLP["Helper script: optional saved run"]
+        LEDGER["init, snapshot and extract-docx"] --> CHK{"check status"}
+        CHK -->|"fail"| REPAIR["Complete or correct the records"]
+        REPAIR --> CHK
+        CHK -->|"pass or pass-with-limits"| REC["Evidence ledger with disclosed limits"]
+    end
+    ASK --> MAP
+    RET -.-> LEDGER
+    MEMO --> VET
+    CC --> INV
+    ITEM -.-> LEDGER
+    REC -.-> FIND
+    REC -.-> MEMO
+    FIND --> FIXD
+```
+
+| Hand-off | What the lawyer receives | What it does **not** settle |
+|---|---|---|
+| Research memo | Answer, pinpointed authorities, adverse authority, search log, gaps | Whether the advice suits the client's full facts and strategy |
+| Cite-check findings | Every draft location accounted for; exact find-strings and proposed corrections | Proposed replacements remain unverified until their sources are checked |
+| `check` pass | Records are complete, internally consistent and hash-matched | Legal correctness, completeness, current law, or citator status |
+| Public treatment search | Later decisions actually found and read | A comprehensive citator check; run an authorised one before relying on a case |
+
+The skill never files, serves, uploads or sends material on its own initiative. A
+revised draft needs a fresh run because each saved run keeps its draft snapshot fixed.
 
 ## Development and validation
 

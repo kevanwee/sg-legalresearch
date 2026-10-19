@@ -31,7 +31,7 @@ changing the letters in an older SLR citation. Nor should every SLR(R) citation 
 forced into a volume-bearing pattern: historical report formats vary.
 
 Neutral court designators commonly encountered include `SGCA`, `SGHC(A)`, `SGHC`,
-`SGHCR`, and `SGHC(I)`. Preserve parentheses and verify the designator from the
+`SGHCR`, `SGHC(I)` and `SGHCF`. Preserve parentheses and verify the designator from the
 judgment. `SGHC` before 2 January 2021 denotes the former High Court; thereafter
 it denotes the General Division. Check the source for other courts' designators.
 

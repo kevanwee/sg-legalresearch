@@ -64,6 +64,11 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             r.init_run(self.run, "new", "research", "2026-10-20", "2026-10-20")
 
+    def test_stale_temporary_file_does_not_block_writes(self):
+        (self.run / "run.json.tmp").write_text("interrupted", encoding="utf-8")
+        self.assertEqual(self.report()["status"], "pass-record-checks")
+        self.assertFalse((self.run / "run.json.tmp").exists())
+
     def test_empty_run_cannot_pass(self):
         other = self.base / "empty"
         r.init_run(other, "Synthetic question", "research", "2026-10-20", "2026-10-20")
