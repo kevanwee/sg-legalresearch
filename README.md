@@ -1,4 +1,4 @@
-# Singapore Legal Research
+# Singapore Legal Research Skill
 
 A Singapore-specific legal research skill for Codex and Claude Code. Find authorities,
 check a draft's citations, trace legislation and Hansard, and prepare research memos
@@ -142,8 +142,8 @@ standard library. No API keys are required by this package.
 Clone the repository, then install the skill for the runtime you use:
 
 ```sh
-git clone https://github.com/kevanwee/sg-legalresearch.git
-cd sg-legalresearch
+git clone https://github.com/kevanwee/sg-legalresearch-skill.git
+cd sg-legalresearch-skill
 python scripts/install_skill.py --target codex
 # Or: python scripts/install_skill.py --target claude
 ```
