@@ -122,8 +122,9 @@ saved source. This fallback is unavailable when a numbered-paragraph index exist
 The checker verifies those source spans but reports page-to-text mapping as a manual
 limitation; do not claim it inferred the report's printed page from a PDF viewer.
 
-For statutes retain the relevant operative provision, definitions and exceptions with
-the correct section/rule/regulation and version; for Hansard retain the relevant speech
+For statutes use [statutory evidence](statutory-evidence.md) to retain the relevant
+operative provision, definitions and exceptions with the correct section/rule/regulation,
+instrument and version, rechecked for each fresh draft. For Hansard retain the relevant speech
 passage with sitting, speaker and actual column/page/available locator. Do not invent
 case-style paragraph numbers for these sources. Inaccessible reported text must remain
 qualified even if an unreported version is publicly available.

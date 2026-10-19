@@ -10,8 +10,11 @@ import re
 import shutil
 import sys
 import unicodedata
+import uuid
 import xml.etree.ElementTree as ET
 import zipfile
+
+from statutory import canonical_provision, build_provisions, checked_provisions, select_provision, verify_statute_receipt
 
 MODES = ("research", "deep-research", "find-authority", "cite-check",
          "legislation-hansard", "case-prep", "library", "proofread")
@@ -182,6 +185,35 @@ def capture_passages(root, source_id, pinpoint):
                          "pinpoint_reviewed": False, "support_note": ""}}
 
 
+def index_provisions(root, source_id, manifest, review_note):
+    data, source, text = source_and_text(root, source_id)
+    if source.get("kind") != "legislation" or not nonempty(review_note):
+        raise ValueError("select a legislation source and explain the boundary review")
+    if not isinstance(manifest, dict):
+        raise ValueError("provision map must be an object")
+    receipt = manifest.get("statute_verification")
+    candidate = dict(source, statute_verification=receipt)
+    verify_statute_receipt(data, candidate)
+    iso_date(receipt.get("law_as_at"))
+    source["provision_index"] = {"text_sha256": source["text_sha256"], "boundaries_reviewed": True,
+        "review_note": review_note, "provisions": build_provisions(text, manifest)}
+    source["statute_verification"] = receipt
+    write_json(Path(root) / "run.json", data)
+    return {"source_id": source_id, "provisions_indexed": len(source["provision_index"]["provisions"])}
+
+
+def capture_provision(root, source_id, locator):
+    data, source, text = source_and_text(root, source_id)
+    passages, context = select_provision(checked_provisions(source, text), locator)
+    receipt = verify_statute_receipt(data, source)
+    return {"instrument": source["title"], "instrument_citation": source["citation"],
+            "version": source["version"], "url": source["url"],
+            "evidence": {"source_id": source_id, "pinpoint": canonical_provision(locator),
+                         "locator_type": "provision", "law_as_at": receipt.get("law_as_at"),
+                         "passages": passages, "context": context,
+                         "pinpoint_reviewed": False, "support_note": ""}}
+
+
 def init_run(root, question, mode, research_date, law_as_at):
     iso_date(research_date)
     iso_date(law_as_at)
@@ -189,7 +221,7 @@ def init_run(root, question, mode, research_date, law_as_at):
         raise ValueError("a question and a supported mode are required")
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
-    data = {"schema_version": 1, "question": question, "mode": mode,
+    data = {"schema_version": 1, "run_id": uuid.uuid4().hex, "question": question, "mode": mode,
             "research_date": research_date, "law_as_at": law_as_at,
             "sources": [], "claims": [], "quotes": [], "inventory": [],
             "search_log": [], "gaps": [], "review": "", "draft": None}
@@ -345,7 +377,7 @@ def check_run(root):
     searches = indexed(data["search_log"], "search_log")
     inventory = indexed(data["inventory"], "inventory")
     quotes = indexed(data["quotes"], "quotes")
-    texts, paragraph_rows = {}, {}
+    texts, paragraph_rows, provision_rows = {}, {}, {}
 
     def check_hash(record, path_key, hash_key, label):
         try:
@@ -395,6 +427,11 @@ def check_run(root):
         if source.get("paragraph_index") is not None and key in texts:
             try:
                 paragraph_rows[key] = checked_paragraphs(source, texts[key])
+            except ValueError as exc:
+                errors.append(f"{key}: {exc}")
+        if source.get("provision_index") is not None and key in texts:
+            try:
+                provision_rows[key] = checked_provisions(source, texts[key])
             except ValueError as exc:
                 errors.append(f"{key}: {exc}")
 
@@ -451,17 +488,35 @@ def check_run(root):
                         raise ValueError("case locator_type must be paragraph or page")
                 except ValueError as exc:
                     errors.append(f"{key}: {exc}")
+            if sources[sid].get("kind") == "legislation":
+                try:
+                    receipt = verify_statute_receipt(data, sources[sid])
+                    iso_date(receipt.get("law_as_at"))
+                    if ref.get("locator_type") != "provision" or sid not in provision_rows:
+                        raise ValueError("statutory evidence needs a reviewed provision index and locator_type=provision")
+                    expected, context = select_provision(provision_rows[sid], ref.get("pinpoint"))
+                    if ref.get("passages") != expected or ref.get("context") != context:
+                        raise ValueError("statutory evidence must retain the exact cited provision and its complete parent context")
+                    if ref.get("law_as_at") != receipt["law_as_at"]:
+                        raise ValueError("statutory evidence date does not match the verified source version")
+                    if ref["law_as_at"] != data["law_as_at"] and not nonempty(ref.get("date_basis")):
+                        raise ValueError("explain the event date or historical comparison when using a different law-as-at date")
+                    for p in expected:
+                        if p["status"] != "in-force":
+                            limits.append(f"{key}: {p['locator']} {p['status']}: {p['status_note']}")
+                except ValueError as exc:
+                    errors.append(f"{key}: {exc}")
 
-        has_case = any(isinstance(ref, dict) and isinstance(ref.get("source_id"), str)
-                       and sources.get(ref["source_id"], {}).get("kind") == "case" for ref in refs)
-        if "citation_check" in claim or (data["mode"] == "cite-check" and has_case):
+        has_authority = any(isinstance(ref, dict) and isinstance(ref.get("source_id"), str)
+                       and sources.get(ref["source_id"], {}).get("kind") in ("case", "legislation") for ref in refs)
+        if "citation_check" in claim or (data["mode"] == "cite-check" and has_authority):
             cited = claim.get("citation_check")
             if not isinstance(cited, dict):
-                errors.append(f"{key}: cite-check case finding needs citation_check preserving the original citation")
+                errors.append(f"{key}: cite-check finding needs citation_check preserving the original citation")
                 continue
             status = cited.get("result")
             sid, pin = cited.get("source_id"), cited.get("pinpoint")
-            if status not in ("supported", "wrong-pinpoint", "unsupported", "missing-pinpoint", "unverifiable"):
+            if status not in ("supported", "wrong-pinpoint", "wrong-instrument", "wrong-version", "unsupported", "missing-pinpoint", "unverifiable"):
                 errors.append(f"{key}: invalid citation_check result")
             if not all(nonempty(cited.get(f)) for f in ("citation", "reason")) or not isinstance(pin, str):
                 errors.append(f"{key}: citation_check needs original citation, pinpoint and reason")
@@ -473,8 +528,8 @@ def check_run(root):
             if status == "missing-pinpoint" and pin:
                 errors.append(f"{key}: missing-pinpoint must preserve an empty original pinpoint")
             if status not in ("missing-pinpoint", "unverifiable"):
-                if not isinstance(sid, str) or sources.get(sid, {}).get("kind") != "case" or not nonempty(pin):
-                    errors.append(f"{key}: checked case citation needs its source and original pinpoint")
+                if not isinstance(sid, str) or sources.get(sid, {}).get("kind") not in ("case", "legislation") or not nonempty(pin):
+                    errors.append(f"{key}: checked citation needs its source and original pinpoint")
                     continue
                 # Preserve literal locators from the draft; canonicalise only dash/space variants.
                 squash = lambda s: re.sub(r"\s+", "", s).replace("–", "-").replace("—", "-")
@@ -486,16 +541,51 @@ def check_run(root):
                             return select_paragraphs(paragraph_rows[sid], ref["pinpoint"]) == select_paragraphs(paragraph_rows[sid], pin)
                         except ValueError:
                             return False
+                    if sources[sid].get("kind") == "legislation":
+                        try:
+                            resolved = cited.get("resolved_pinpoint", pin)
+                            if resolved != pin and not nonempty(cited.get("pinpoint_resolution_note")):
+                                return False
+                            return canonical_provision(ref["pinpoint"]) == canonical_provision(resolved)
+                        except ValueError:
+                            return False
                     return squash(ref["pinpoint"]) == squash(pin)
                 if squash(pin) not in squash(cited["citation"]):
                     errors.append(f"{key}: original pinpoint does not occur in the original citation")
                 linked = [ref for ref in refs if isinstance(ref, dict) and ref.get("source_id") == sid
                           and same_locator(ref)]
                 if not linked:
-                    errors.append(f"{key}: original cited paragraph must be checked separately from any correction")
+                    errors.append(f"{key}: original cited paragraph/provision must be checked separately from any correction")
                 if status == "wrong-pinpoint" and not any(isinstance(ref, dict) and ref.get("source_id") == sid
                         and nonempty(ref.get("pinpoint")) and not same_locator(ref) for ref in refs):
-                    errors.append(f"{key}: wrong-pinpoint needs separately captured proposed replacement paragraphs")
+                    errors.append(f"{key}: wrong-pinpoint needs separately captured proposed replacement paragraphs/provisions")
+            is_statute = isinstance(sid, str) and sources.get(sid, {}).get("kind") == "legislation"
+            if is_statute:
+                for field, allowed in (("instrument_result", ("matched", "wrong-instrument", "ambiguous", "unverifiable")),
+                                       ("version_result", ("matched", "wrong-version", "unverifiable"))):
+                    if cited.get(field) not in allowed:
+                        errors.append(f"{key}: statutory citation needs {field}")
+                    elif cited[field] != "matched":
+                        note = cited.get("instrument_note" if field == "instrument_result" else "version_note", "")
+                        limits.append(f"{key}: {field} {cited[field]}: {note}")
+                if not all(nonempty(cited.get(f)) for f in ("instrument_note", "version_note", "date_basis")):
+                    errors.append(f"{key}: explain instrument identity, applicable date and version selection")
+                if cited.get("resolved_instrument") != sources[sid].get("title"):
+                    errors.append(f"{key}: citation identity does not resolve to the actual source instrument")
+                try:
+                    iso_date(cited.get("applicable_on"))
+                except ValueError:
+                    errors.append(f"{key}: statutory citation needs its applicable_on date")
+                if status == "supported":
+                    receipt = sources[sid].get("statute_verification", {})
+                    if cited.get("instrument_result") != "matched" or cited.get("version_result") != "matched":
+                        errors.append(f"{key}: wrong or unverified instrument/version cannot be marked supported")
+                    if not isinstance(receipt, dict) or receipt.get("law_as_at") != cited.get("applicable_on"):
+                        errors.append(f"{key}: supported citation must use the version verified for its applicable date")
+                if status == "wrong-instrument" and cited.get("instrument_result") != "wrong-instrument":
+                    errors.append(f"{key}: wrong-instrument result conflicts with the identity finding")
+                if status == "wrong-version" and cited.get("version_result") != "wrong-version":
+                    errors.append(f"{key}: wrong-version result conflicts with the version finding")
             if status != "supported":
                 limits.append(f"{key}: citation {status}: {cited['reason']}")
                 if assessment == "supported":
@@ -540,7 +630,7 @@ def check_run(root):
             errors.append(f"{key}: quote pinpoint not reviewed")
         if not (sources[sid].get("identity_verified") is True and sources[sid].get("full_text_reviewed") is True):
             errors.append(f"{key}: quotation source is unreviewed")
-        if sources[sid].get("kind") == "case" and type(start) is int and type(end) is int:
+        if sources[sid].get("kind") in ("case", "legislation") and type(start) is int and type(end) is int:
             matching = [ref for ref in refs if isinstance(ref, dict) and ref.get("source_id") == sid
                         and ref.get("pinpoint") == quote.get("pinpoint")]
             spans = [p for ref in matching if isinstance(ref.get("passages"), list) for p in ref["passages"] if isinstance(p, dict)
@@ -665,6 +755,16 @@ def main(argv=None):
     passages.add_argument("run", type=Path)
     passages.add_argument("--source", required=True)
     passages.add_argument("--pinpoint", required=True)
+    statute_index = sub.add_parser("index-provisions", help="bind reviewed statutory locators to source spans and a fresh verification receipt")
+    statute_index.add_argument("run", type=Path)
+    statute_index.add_argument("--source", required=True)
+    statute_index.add_argument("--map", type=Path, required=True)
+    statute_index.add_argument("--confirm-boundaries", action="store_true", required=True)
+    statute_index.add_argument("--review-note", required=True)
+    provision = sub.add_parser("provision", help="capture the exact statutory provision and its parent context")
+    provision.add_argument("run", type=Path)
+    provision.add_argument("--source", required=True)
+    provision.add_argument("--locator", required=True)
     docx = sub.add_parser("extract-docx", help="snapshot a Word draft and inventory text")
     docx.add_argument("run", type=Path)
     docx.add_argument("file", type=Path)
@@ -687,6 +787,10 @@ def main(argv=None):
             output = index_paragraphs(args.run, args.source, args.style, args.review_note)
         elif args.command == "passages":
             output = capture_passages(args.run, args.source, args.pinpoint)
+        elif args.command == "index-provisions":
+            output = index_provisions(args.run, args.source, read_json(args.map), args.review_note)
+        elif args.command == "provision":
+            output = capture_provision(args.run, args.source, args.locator)
         elif args.command == "check":
             output = check_run(args.run)
         else:

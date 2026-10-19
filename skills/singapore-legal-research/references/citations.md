@@ -23,7 +23,7 @@ the rule-making publisher. Consult the guide itself for exceptions and foreign s
 | Reported case | Verify the case name, year, volume if present, series, first page and pinpoint. Prefer the appropriate SLR/SLR(R) report under the applicable court directions. |
 | Unreported case | Use the assigned neutral citation and actual pinpoint. Do not invent a report citation or add an “unreported” label by default. |
 | Case pinpoint | Retrieve the complete paragraph(s) in the version cited. Use `at [35]` for one paragraph, `at [35]–[37]` for a continuous range, and explicit pinpoints for disjoint paragraphs; distinguish report pages. |
-| Legislation | Use its verified short title, year, edition where applicable and provision. Historical chapter citations and modern enactment-year titles need different treatment. |
+| Legislation | Verify the exact instrument and applicable version, then retrieve the specifically cited section/subsection/rule or schedule unit. Preserve its short title, year, edition where applicable and precise locator; historical chapter citations and modern titles need different treatment. |
 | Hansard | Record debate date, volume and column if supplied, speaker and capacity, plus a direct link. Use the guide's electronic format where conventional locators are unavailable. |
 
 SLR(R) covers the reissued 1965–2009 reports. Do not obtain a reissue page number by
@@ -37,6 +37,9 @@ it denotes the General Division. Check the source for other courts' designators.
 
 Apply [paragraph evidence](paragraph-evidence.md) to paraphrases as well as quotations.
 During cite-checking, verify the original cited passage before proposing any correction.
+For legislation, use [statutory evidence](statutory-evidence.md) and separately record
+instrument identity, the version applicable to the facts, and exact provision support.
+Recheck these for each fresh draft rather than reusing a prior document's findings.
 
 Do not substitute an SLR citation into a quotation checked only against eLitigation.
 The reported text can have editorial differences. If the report is inaccessible,

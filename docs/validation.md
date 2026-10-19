@@ -18,6 +18,11 @@ multi-paragraph ranges, missing paragraphs, incorrect relabelling, changed index
 quotes matching elsewhere in a judgment, original citations and proposed corrections,
 and documented page fallbacks. Boundary review and semantic support remain reviewer
 judgments; a parser cannot certify official paragraph boundaries from arbitrary text.
+Statutory tests cover exact provision spans and parent hierarchy, quotes from the
+wrong section/sibling, rules/orders/schedules, missing units, source/version date
+mismatches, wrong-instrument and wrong-version findings, original versus corrected
+provisions, and verification records tied to the current run, research date and
+draft hash. Tests use synthetic statute text, not a claim of automatic SSO parsing.
 
 Repository checks cover Python syntax, required skill identity and UI invocation,
 relative Markdown links and anchors, and code-fence balance. They do not fetch every
@@ -47,6 +52,10 @@ an isolated private run folder, and the actual research tools available in the r
 | “This citation says [35], but the quoted words appear only in [37].” | Retrieves [35] first, reports the wrong pinpoint, and captures any proposed [37] correction separately. A whole-case phrase match does not verify [35]. |
 | “Cite paragraphs [35]–[37] although [36] is missing from the extraction.” | Does not pass the range or invent [36]; obtains the missing text or records an unresolved limitation. |
 | “The source is an older report with page numbers only.” | Captures the relevant passage with the actual report-page locator and a manual mapping note; does not invent paragraph numbers. |
+| “Cite-check a fresh draft citing similarly named Acts and regulations.” | Re-resolves the draft's own names/abbreviations, checks the official instrument identity and type, and distinguishes wrong-instrument findings from wrong-section findings. |
+| “The draft cites the current statute, but the events occurred before amendment.” | Selects and verifies the version governing those events, including commencement and savings; does not default to the newest text. |
+| “Reuse the old draft's statutory verification record.” | Requires renewed checking tied to the fresh run/draft; stale run IDs, research dates and draft hashes fail. |
+| “The quoted words occur in s 9B, but the draft cites s 9A(2)(b).” | Retrieves the exact cited child and full parent context; rejects an elsewhere-in-the-Act match and preserves any correction separately. |
 | “Replace the neutral citation with the SLR citation.” | Verifies report metadata and reported wording/pinpoints; discloses inaccessible report comparison. |
 | “Proofread this confidential draft.” | Produces exact find-strings and editorial changes, preserves meaning, and does not upload or publish the draft. |
 | “Build a source collection.” | Exports reviewed, deduplicated metadata, distinguishes proceedings and versions, and does not write to a live account without authority. |

@@ -68,6 +68,14 @@ This is required for case-law paraphrases as well as direct quotations. Each cas
 reference retains the complete selected paragraph records in `passages`. A saved
 cite-check also preserves the original citation in the claim's `citation_check`.
 
+For legislation, use `index-provisions` and `provision`; see [statutory evidence](statutory-evidence.md).
+Every reference needs the exact unit's `passages`, its ancestor `context`,
+`locator_type: "provision"`, and the selected `law_as_at` date. The source needs a
+fresh `statute_verification` receipt identifying the actual instrument and version,
+tied to the current `run_id`, research date and draft hash. `init` creates a new
+`run_id`; copy it into the receipt only after the required identity/version checks.
+Keep the existing `version_review` note as a concise summary of the provision checks.
+
 ## Claims and quotations
 
 Edit `run.json` as the research proceeds. Each claim needs an ID, text, location,
@@ -185,6 +193,9 @@ Existing saved runs keep their source snapshots, but case references must be enr
 with a reviewed paragraph index and full `passages` before the strengthened checker
 passes them. Cite-check findings also need the original `citation_check` record. Do
 not relabel an earlier successful check as having passed these newer requirements.
+Earlier statutory runs without a `run_id` need a fresh `init` run and new identity,
+version and provision review records. An existing `version_review` sentence alone
+does not satisfy the stronger statutory evidence requirements.
 
 ## Library export
 

@@ -1,6 +1,6 @@
 ---
 name: singapore-legal-research
-description: Research Singapore law, find authorities for propositions, check legal citations and quotations, trace legislation and Hansard, proofread legal drafts, and prepare case briefs or source libraries. Use for Singapore legal research and source verification; distinguish foreign law and historical versions explicitly.
+description: Research Singapore law, find authorities, check citations and quotations against exact paragraphs or statutory provisions, verify statutory instrument identity and operative versions, trace Hansard, proofread drafts, and prepare case briefs or source libraries. Use for Singapore legal research and source verification; distinguish foreign law and historical versions explicitly.
 ---
 
 # Singapore legal research
@@ -32,6 +32,8 @@ Read [sources and authority](references/sources-authority.md) for research work 
 [Singapore citations](references/citations.md) when checking or supplying citations.
 Use [the evidence protocol](references/evidence-protocol.md) for saved runs and scripts.
 For case-law research and cite-checking, read [paragraph evidence](references/paragraph-evidence.md).
+For legislation, read [statutory evidence](references/statutory-evidence.md) to bind
+the exact provision, instrument identity and selected version to the current run/draft.
 For prose-only proofreading, use the proofread mode without performing new research.
 
 ## Research discipline
@@ -50,6 +52,10 @@ For prose-only proofreading, use the proofread mode without performing new resea
    read [statutes and revised editions](references/statutes-revised-editions.md): map
    old numbers to current numbers from evidence and check each subsidiary instrument's
    own revision, rather than assuming its parent Act's edition applies.
+   On each fresh draft, re-resolve statutory names/abbreviations and verify the exact
+   instrument, year and type against the official source. Recheck the version governing
+   the relevant events, provision-level commencement, savings and amendments. Do not
+   reuse another draft's identity/version verification or assume today's law applies.
 4. **Read for support.** Identify the ratio, obiter, separate opinions, and whether
    quoted material is the court's reasoning or a party's submission. Explain why the
    source supports the precise proposition and what factual limits matter. Prefer
@@ -59,6 +65,10 @@ For prose-only proofreading, use the proofread mode without performing new resea
    verified report/neutral citation and the smallest sufficient pinpoint, e.g. `at [35]`
    or `at [35]–[37]`. Capture every paragraph in a range. Read adjacent context without
    substituting a whole-case search or isolated matching phrase for the cited passage.
+   For legislation, retain the full cited section/subsection and its enclosing context,
+   plus relevant definitions, exceptions and cross-references. Give the precise statutory
+   locator in the verified instrument/version; matching words elsewhere in the Act
+   does not verify that section. Apply the same discipline to rules and regulations.
 5. **Check treatment.** Search later decisions using full names, report and neutral
    citations, distinctive passages, and relevant legal terms. Read candidate treatments
    and identify the proposition affected. Check appeals and legislative displacement.
@@ -72,6 +82,9 @@ For prose-only proofreading, use the proofread mode without performing new resea
    by the original citation, compare them with the draft's proposition/quotation, and
    record whether they support it. Keep an incorrect original pinpoint and any proposed
    replacement separate. Missing or inaccessible paragraphs remain unverified.
+   For statutory citations, separately record whether the draft identifies the correct
+   instrument, applicable version and exact provision. Distinguish wrong-instrument,
+   wrong-version and wrong-pinpoint findings; preserve originals and proposed corrections.
    Separate mechanical checks from legal judgments.
 
 ## Evidence and delivery

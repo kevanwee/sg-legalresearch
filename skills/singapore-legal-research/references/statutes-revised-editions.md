@@ -67,6 +67,15 @@ savings reviewed; source URL and publication authority. Put the result in the so
 `version_review` field and preserve the supporting documents. An edition year is
 not a current-through date: later amendments must still be checked.
 
+For saved research, apply [statutory evidence](statutory-evidence.md): retain the exact
+cited provision and parent context, with a structured identity/version receipt for
+the current run. A fresh or revised draft needs renewed instrument identification,
+version selection and provision-specific checking, tied to that draft snapshot.
+Resolve the draft's own abbreviations; do not carry mappings across matters. Check
+that the intended principal Act, predecessor/re-enactment, amendment or subsidiary
+instrument is actually the one cited, rather than merely finding the same section
+number in a similarly named instrument.
+
 SSO is an AGC research service; distinguish a web consolidation from the authoritative
 published legislation and revised edition. Verify the source's publication status
 and use the appropriate Gazette/revised text where authenticity matters. A website

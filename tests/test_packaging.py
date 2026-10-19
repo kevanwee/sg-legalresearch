@@ -20,6 +20,8 @@ class PackagingTests(unittest.TestCase):
             destination = installer.install("codex", Path(folder) / "skills")
             self.assertTrue((destination / "SKILL.md").is_file())
             self.assertTrue((destination / "references/statutes-revised-editions.md").is_file())
+            self.assertTrue((destination / "scripts/statutory.py").is_file())
+            self.assertTrue((destination / "references/statutory-evidence.md").is_file())
             script = destination / "scripts/research.py"
             run = Path(folder) / "private-run"
             args = [sys.executable, str(script), "init", str(run), "--question", "Synthetic question",

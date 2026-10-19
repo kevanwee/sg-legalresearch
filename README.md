@@ -169,9 +169,9 @@ skills directory. Do not install duplicate copies under several discovery roots.
 flowchart TD
     IN["Question or preserved draft"] --> MAP["Issues and location inventory"]
     MAP --> FIND["Retrieve primary sources"]
-    FIND --> READ["Capture full supporting paragraphs; review identity, version, support and treatment"]
+    FIND --> READ["Capture exact paragraphs or provisions; review identity, version, support and treatment"]
     READ --> LEDGER["Evidence ledger and source snapshots"]
-    LEDGER --> CHECK["Offline checks: full cited paragraphs, quote spans, hashes and coverage"]
+    LEDGER --> CHECK["Offline checks: cited paragraphs or provisions, version records, quote spans, hashes and coverage"]
     CHECK -->|"record error"| FIX["Correct evidence or disclose unresolved finding"]
     FIX --> LEDGER
     CHECK -->|"records consistent"| REVIEW["Re-read decisive passages and final output"]
@@ -229,6 +229,40 @@ actual provision/column/page locators. See [paragraph evidence](skills/singapore
 for the workflow, original-citation findings, source-format limits and migration of
 earlier saved runs.
 
+### Statutory provisions and fresh-draft checks
+
+Statutory citations receive three separate checks:
+
+1. **Correct instrument:** match the draft's name or abbreviation to the precise title,
+   year and identifier. Distinguish an Act from its subsidiary legislation, a similarly
+   named instrument, a predecessor/re-enactment and an amending Act.
+2. **Applicable version:** establish the relevant event date, then verify the specific
+   provision's operative wording, commencement, amendments, savings and renumbering.
+   The newest consolidation is not automatically the version governing the facts.
+3. **Exact provision:** retain the complete cited section/subsection, rule, regulation
+   or schedule unit, plus its enclosing context and relevant definitions/exceptions.
+   Words elsewhere in the instrument do not verify the cited provision.
+
+Each fresh or materially revised draft needs a new run and renewed identity/version
+checks. Saved statutory verification records identify the actual instrument, selected
+date and checks performed, and are tied to that run and draft snapshot. A receipt
+from another run, research date or draft hash fails validation. Prior downloads can
+help research; their earlier review status is not silently reused for a new document.
+
+The helpers use a reviewed provision map of exact source spans and hierarchy:
+
+```sh
+python skills/singapore-legal-research/scripts/research.py index-provisions runs/example --source L1 --map provision-map.json --confirm-boundaries --review-note "Checked complete units against the selected official version"
+python skills/singapore-legal-research/scripts/research.py provision runs/example --source L1 --locator "s 9A(2)(b)"
+```
+
+These commands require source `L1` and a completed map/verification record; they do
+not infer legal hierarchy from arbitrary SSO/PDF formatting. Cite-check findings
+distinguish **wrong instrument**, **wrong version** and **wrong provision**, preserving
+the original citation and any separately verified proposed correction. See
+[statutory evidence](skills/singapore-legal-research/references/statutory-evidence.md)
+for map fields, version checks, precise locators and fresh-draft requirements.
+
 ## How a lawyer uses it
 
 This process model shows one practitioner preparing written submissions. The lanes
@@ -257,10 +291,10 @@ flowchart TD
         MAP["Map issues; plan sources"] --> RET["Retrieve primary sources: SSO, eLitigation, Parliament, LawNet if available"]
         RET --> ACC{"Source accessible?"}
         ACC -->|"no"| GAP["Record access gap; do not fill from memory"]
-        ACC -->|"yes"| SUP["Capture full supporting paragraphs; check version, support and treatment"]
+        ACC -->|"yes"| SUP["Capture cited paragraphs or provisions; check instrument, version, support and treatment"]
         GAP --> MEMO
         SUP --> MEMO["Answer-first memo with pinpoints, limits and search coverage"]
-        INV["Inventory every body, table, footnote and endnote location"] --> ITEM["Resolve original citations; retrieve and check the exact cited paragraphs"]
+        INV["Inventory every body, table, footnote and endnote location"] --> ITEM["Resolve original citations; check exact passages and fresh statutory identity/version findings"]
         ITEM --> FIND["Findings with exact find-strings, substantive issues before style"]
     end
     subgraph HLP["Helper script: optional saved run"]
@@ -310,6 +344,8 @@ references for [workflows](skills/singapore-legal-research/references/workflows.
 [evidence](skills/singapore-legal-research/references/evidence-protocol.md).
 The [paragraph-evidence protocol](skills/singapore-legal-research/references/paragraph-evidence.md)
 binds case-law support and cite-check findings to the actual cited passages.
+The [statutory-evidence protocol](skills/singapore-legal-research/references/statutory-evidence.md)
+does the same for provisions, instrument identity and versions in each fresh draft.
 Source and citation guidance was checked on **20 October 2026**; refresh it when used.
 
 ## Contributions and licence
