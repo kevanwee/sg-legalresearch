@@ -44,6 +44,57 @@ def canonical_provision(value):
     return provision_locator(value)[0]
 
 
+ROMAN = {"i": 1, "v": 5, "x": 10, "l": 50, "c": 100}
+
+
+def roman_value(token):
+    lowered = token.lower()
+    if not re.fullmatch(r"[ivxlc]+", lowered):
+        return None
+    total = 0
+    for i, ch in enumerate(lowered):
+        value = ROMAN[ch]
+        total += -value if i + 1 < len(lowered) and ROMAN[lowered[i + 1]] > value else value
+    return total
+
+
+def to_roman(value, upper):
+    out = ""
+    for amount, numeral in ((100, "c"), (90, "xc"), (50, "l"), (40, "xl"), (10, "x"),
+                            (9, "ix"), (5, "v"), (4, "iv"), (1, "i")):
+        while value >= amount:
+            out, value = out + numeral, value - amount
+    return out.upper() if upper else out
+
+
+def next_labels(token):
+    """Labels that may follow `token` in the same series: the next unit or an inserted one."""
+    found = set()
+    numeric = re.fullmatch(r"([1-9]\d*)([A-Z]*)", token)
+    if numeric:
+        number, suffix = numeric[1], numeric[2]
+        found.add(str(int(number) + 1))
+        found.add(number + (suffix[:-1] + chr(ord(suffix[-1]) + 1) if suffix and suffix[-1] != "Z" else suffix + "A"))
+        return found
+    if re.fullmatch(r"[a-z]+|[A-Z]+", token):
+        # (b) -> (c), or an inserted (ba); (ba) -> (bb) or (c).
+        first, last = token[0], token[-1]
+        if first not in "zZ":
+            found.add(chr(ord(first) + 1))
+        found.add(token + ("a" if token.islower() else "A"))
+        if len(token) > 1 and last not in "zZ":
+            found.add(token[:-1] + chr(ord(last) + 1))
+        value = roman_value(token)
+        if value:
+            found.add(to_roman(value + 1, token.isupper()))
+    return found
+
+
+def label_token(locator):
+    tokens = re.findall(r"\(([A-Za-z0-9]+)\)", locator)
+    return tokens[-1] if tokens else None
+
+
 def build_provisions(text, manifest):
     """Bind reviewed hierarchical locators to original text, preserving whole units."""
     if not isinstance(manifest, dict) or not isinstance(manifest.get("provisions"), list) or not manifest["provisions"]:
@@ -68,6 +119,16 @@ def build_provisions(text, manifest):
             raise ValueError(f"{locator}: record provision-specific operative status and status_note")
         row = {"locator": locator, "parent": parent, "start": start, "end": end,
                "text": passage, "status": item["status"], "status_note": item["status_note"]}
+        if "tail_start" in item:
+            # Parent text after its last child: closing words, provisos, Explanations.
+            tail = item["tail_start"]
+            if type(tail) is not int or not start < tail < end or not text[tail:end].strip():
+                raise ValueError(f"{locator}: tail_start must point inside the unit at its trailing text")
+            if text[text.rfind("\n", 0, tail) + 1:tail].strip():
+                raise ValueError(f"{locator}: tail_start must begin a line of the parent's trailing text")
+            if re.match(r"\s*\([A-Za-z0-9]+\)", text[tail:]):
+                raise ValueError(f"{locator}: tail_start points at a child label; map that unit instead")
+            row["tail_start"] = tail
         rows.append(row)
         by_locator[locator] = row
     for row in rows:
@@ -89,27 +150,61 @@ def build_provisions(text, manifest):
                 if not ancestor(left, right) and not ancestor(right, left):
                     raise ValueError("unrelated/sibling provision spans overlap; check the boundaries")
     for row in rows:
+        if "tail_start" in row:
+            children = [p for p in rows if p["parent"] == row["locator"]]
+            if not children or any(p["end"] > row["tail_start"] for p in children):
+                raise ValueError(f"{row['locator']}: tail_start must follow every mapped child unit")
+
+    root_label = r"[1-9]\d*[A-Za-z]*(?:\.|[—–])"
+    heading = r"(?:ORDER\s+[1-9]\d*|(?:[A-Za-z]+\s+)?SCHEDULE|PART\s+(?:[IVXLCDM]+|[1-9]\d*))\b"
+    note_line = r"\[[^\]\n]{1,80}\][ \t]*(?:\n|$)"  # e.g. SSO amendment notes such as [23/2018]
+
+    def skip_space_and_notes(position):
+        while True:
+            position += len(text[position:]) - len(text[position:].lstrip())
+            note = re.match(note_line, text[position:])
+            if not note or text[text.rfind("\n", 0, position) + 1:position].strip():
+                return position
+            position += note.end()
+
+    for row in rows:
         # Check the remainder of the saved source, not sentence punctuation: units
         # legitimately end with colons, semicolons, quotations and table cells.
-        end = row["end"]
-        following = end + len(text[end:]) - len(text[end:].lstrip())
-        if following == len(text):
+        following = skip_space_and_notes(row["end"])
+        if following >= len(text):
             continue
         next_rows = [p for p in rows if p["start"] == following]
         if next_rows:
             if any(ancestor(row, p) for p in next_rows):
                 raise ValueError(f"{row['locator']}: provision span ends before its own child unit")
             continue
+        parent = by_locator.get(row["parent"]) if row["parent"] else None
+        if parent and skip_space_and_notes(parent.get("tail_start", len(text))) == following:
+            continue  # The child ends where its parent's declared trailing text begins.
+        rest = text[following:]
+        at_line_start = not text[text.rfind("\n", 0, following) + 1:following].strip()
         # Unmapped neighbouring units may supply a visible boundary; only accept
-        # their explicit line-start labels, never arbitrary continuation prose.
-        line_start = text.rfind("\n", 0, following) + 1
-        at_line_start = not text[line_start:following].strip()
-        root_label = r"[1-9]\d*[A-Za-z]*(?:\.|[—–])"
-        heading = r"(?:ORDER\s+[1-9]\d*|(?:[A-Za-z]+\s+)?SCHEDULE|PART\s+(?:[IVXLCDM]+|[1-9]\d*))\b"
-        child_label = r"\([A-Za-z0-9]+\)" if row["parent"] else r"(?!)"
-        if not at_line_start or not re.match(r"(?:" + root_label + "|" + heading + "|" + child_label + ")", text[following:], re.I):
+        # explicit line-start labels, never arbitrary continuation prose.
+        boundary = at_line_start and re.match(r"(?:" + root_label + "|" + heading + ")", rest, re.I)
+        if at_line_start and not boundary:
+            # The next unit's own heading line, e.g. a marginal note, before its number.
+            heading_line = re.match(r"([A-Z][^\n]{0,150})\n[ \t]*(?:" + root_label + "|" + heading + ")", rest)
+            boundary = heading_line and not re.search(r"[.,;:—–-]\s*$", heading_line[1])
+        child = re.match(r"\(([A-Za-z0-9]+)\)", rest) if at_line_start else None
+        if child and row["parent"]:
+            # A child label ends this unit only as its own or an ancestor's next sibling,
+            # never as one of its own unmapped sub-units.
+            series, current = set(), row["locator"]
+            while current:
+                token = label_token(current)
+                if token:
+                    series |= next_labels(token)
+                current = by_locator[current]["parent"] if current in by_locator else None
+            boundary = child[1] in series
+        if not boundary:
             raise ValueError(f"{row['locator']}: provision span cuts off before remaining source text; "
-                             "extend it to the next unit boundary or end of the source")
+                             "extend it to the next unit boundary, map the omitted unit, or declare the "
+                             "parent's trailing words with tail_start")
     return rows
 
 

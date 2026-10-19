@@ -200,6 +200,108 @@ class StatutoryTests(unittest.TestCase):
         manifest["provisions"] = [p for p in manifest["provisions"] if p["locator"] != "s 9A(2)(b)"]
         self.assertTrue(r.build_provisions(TEXT, manifest))
 
+    @staticmethod
+    def spans(text, items):
+        rows = []
+        for item in items:
+            locator, first, last = item[:3]
+            start = text.index(first)
+            row = {"locator": locator, "start": start,
+                   "end": text.index(last, start) + len(last) if last else len(text.rstrip()),
+                   "status": "in-force", "status_note": "Synthetic fixture."}
+            if len(item) > 3:
+                row["tail_start"] = text.index(item[3], start)
+            rows.append(row)
+        return {"provisions": rows}
+
+    CLOSING = ("9A.—(1) A synthetic lead-in applies.\n(2) A synthetic power applies —\n(a) to the first case; or\n"
+               "(b) to the second case,\nsubject to synthetic closing words.\n(3) A third synthetic rule.\n9B. Next.\n")
+
+    def closing_map(self, tail=True):
+        parent = ("s 9A(2)", "(2) A synthetic power", "closing words.") + (("subject to",) if tail else ())
+        return self.spans(self.CLOSING, [("s 9A", "9A.—", "third synthetic rule."), parent,
+                                         ("s 9A(2)(a)", "(a) to", "or"), ("s 9A(2)(b)", "(b) to", "second case,")])
+
+    def test_parent_closing_words_need_declared_tail(self):
+        with self.assertRaisesRegex(ValueError, "tail_start"):
+            r.build_provisions(self.CLOSING, self.closing_map(tail=False))
+        rows = r.build_provisions(self.CLOSING, self.closing_map())
+        parent = next(p for p in rows if p["locator"] == "s 9A(2)")
+        self.assertEqual(self.CLOSING[parent["tail_start"]:parent["end"]], "subject to synthetic closing words.")
+
+    def test_tail_start_cannot_hide_a_child_or_precede_mapped_children(self):
+        manifest = self.closing_map()
+        parent = manifest["provisions"][1]
+        for tail, message in ((self.CLOSING.index("(b) to"), "child label"),
+                              (self.CLOSING.index("closing words"), "begin a line")):
+            parent["tail_start"] = tail
+            with self.subTest(tail=tail), self.assertRaisesRegex(ValueError, message):
+                r.build_provisions(self.CLOSING, manifest)
+
+    def test_declared_tail_does_not_excuse_a_cut_child(self):
+        manifest = self.closing_map()
+        manifest["provisions"][3]["end"] = self.CLOSING.index("second case")
+        with self.assertRaisesRegex(ValueError, "cuts off"):
+            r.build_provisions(self.CLOSING, manifest)
+
+    def test_unit_cannot_end_before_its_own_unmapped_subunits(self):
+        text = ("5.—(1) A synthetic offence if —\n(a) the first act; and\n(b) the act is —\n(i) wilful; or\n"
+                "(ii) reckless.\n(2) A synthetic penalty.\n6. Next.\n")
+        examples = [[("s 5", "5.—", None), ("s 5(1)", "(1) A synthetic", "if —")],
+                    [("s 5", "5.—", None), ("s 5(1)", "(1) A synthetic", "reckless."),
+                     ("s 5(1)(b)", "(b) the act", "is —")]]
+        for items in examples:
+            with self.subTest(items=items), self.assertRaisesRegex(ValueError, "cuts off"):
+                r.build_provisions(text, self.spans(text, items))
+
+    def test_sibling_series_and_inserted_units_are_valid_boundaries(self):
+        text = ("5.—(1) Synthetic text:\n(a) one;\n(b) two;\n(ba) inserted;\n(c) three —\n(iv) fourth;\n(v) fifth.\n"
+                "(2) Two.\n(2A) Inserted two.\n(3) Three.\nPART 3\nOTHER SYNTHETIC MATTERS\n6. Six.\n")
+        whole = [("s 5", "5.—", "Three."), ("s 5(1)", "(1) Synthetic", "fifth.")]
+        for leaf in [("s 5(1)(b)", "(b) two", "two;"), ("s 5(1)(ba)", "(ba)", "inserted;"),
+                     ("s 5(1)(c)", "(c) three", "fifth."), ("s 5(2)", "(2) Two", "Two.")]:
+            items = whole + [leaf] if leaf[0] != "s 5(2)" else whole[:1] + [leaf]
+            with self.subTest(leaf=leaf[0]):
+                self.assertTrue(r.build_provisions(text, self.spans(text, items)))
+        items = whole + [("s 5(1)(c)", "(c) three", "fifth."), ("s 5(1)(c)(iv)", "(iv)", "fourth;")]
+        self.assertTrue(r.build_provisions(text, self.spans(text, items)))
+
+    def test_next_heading_and_amendment_notes_are_valid_boundaries(self):
+        text = ("8. Synthetic eight.\nSynthetic heading of nine\n9.—(1) Nine one.\n[23/2018]\n(2) Nine two.\n"
+                "Synthetic heading of ten\n10. Ten.\n")
+        items = [("s 8", "8.", "eight."), ("s 9", "9.—", "Nine two."), ("s 9(1)", "(1) Nine", "one."),
+                 ("s 10", "10.", "Ten.")]
+        self.assertTrue(r.build_provisions(text, self.spans(text, items)))
+        with self.assertRaisesRegex(ValueError, "cuts off"):
+            r.build_provisions(text, self.spans(text, [("s 9", "9.—", "Nine two")]))
+
+    def test_quote_from_closing_words_needs_the_parent_citation(self):
+        text = self.CLOSING
+        source_file = self.base / "closing.txt"
+        source_file.write_text(text, encoding="utf-8")
+        r.snapshot(self.run, source_file, "L2", "Synthetic Act 2000", "legislation",
+                   "https://example.invalid/act", "SYNTHETIC-ACT-1", "synthetic 2026 version")
+        data = r.load_run(self.run)
+        manifest = self.closing_map()
+        manifest["statute_verification"] = provision_map(data, data["sources"][1])["statute_verification"]
+        r.index_provisions(self.run, "L2", manifest, "Synthetic closing-words boundary reviewed.")
+        source = r.load_run(self.run)["sources"][1]
+        source.update(identity_verified=True, full_text_reviewed=True, publication_authority="Synthetic fixture only",
+                      retrieved_on="2026-10-20", review_note="Read fixture.", version_review="Synthetic check.")
+        self.data["sources"] = [self.data["sources"][0], source]
+        words = "subject to synthetic closing words."
+        start = text.index(words)
+        for locator, ok in (("s 9A(2)(b)", False), ("s 9A(2)", True)):
+            r.write_json(self.run / "run.json", self.data)
+            evidence = r.capture_provision(self.run, "L2", locator)["evidence"]
+            evidence.update(pinpoint_reviewed=True, support_note="Synthetic closing words.")
+            self.data["claims"][0]["evidence"] = [evidence]
+            self.data["quotes"] = [{"id": "Q1", "claim_id": "C1", "source_id": "L2", "pinpoint": locator,
+                                    "text": words, "start": start, "end": start + len(words), "pinpoint_reviewed": True}]
+            errors = self.report()["errors"]
+            with self.subTest(locator=locator):
+                self.assertEqual(not any("outside the full paragraphs/passages" in e for e in errors), ok, errors)
+
     def test_child_must_belong_to_its_actual_parent(self):
         manifest = copy.deepcopy(self.manifest)
         manifest["provisions"][0]["end"] = TEXT.index("(2)")

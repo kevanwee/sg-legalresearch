@@ -21,7 +21,7 @@ The release review covers skill instructions and reference routing, agreement
 between documented evidence requirements and helper checks, installed-copy packaging,
 isolated execution, repository hygiene, installation instructions and diagram layout.
 
-The automated suite contains 107 tests using synthetic sources and documents. The
+The automated suite contains 115 tests using synthetic sources and documents. The
 whole suite is also run with `python -I`; copied installations are exercised with
 `-I`, `-P` and `PYTHONSAFEPATH=1`, including an unrelated `statutory.py` on `PYTHONPATH`.
 Repository and skill metadata validators check the published files. Linux/Windows CI
@@ -41,12 +41,20 @@ this review; each research run must still verify its own official instrument and
 Recognised separate note blocks now stop judgment indexing instead of being absorbed
 into the last paragraph. This covers note headings and explicit line-start note
 markers; inline references remain intact. Notes must be retained separately, with
-a documented body extraction. Older merged indexes receive the same checks.
+a documented body extraction. Older merged indexes receive the same checks. Prose
+that merely mentions a footnote, such as `Footnote 3 of the submissions`, is not
+treated as a note block.
 
 Statutory maps now reject ends that leave continuation prose before the next unit
-boundary, including mid-word, mid-sentence and wrapped-line cutoffs. The validation
-uses source spans and unit boundaries rather than sentence punctuation. Existing
-saved indexes are revalidated. Valid colons, semicolons and partial maps remain usable.
+boundary, including mid-word, mid-sentence and wrapped-line cutoffs, and a unit cut
+before its own unmapped sub-units. An unmapped child label is a boundary only when
+it is the next sibling in the unit's or an ancestor's series, including inserted
+units such as `(ba)` and `(2A)`. The next section's heading line and line-only
+amendment notes such as `[23/2018]` do not cause false refusals. A parent's closing
+words, provisos, Explanations or Illustrations are declared with `tail_start`, so a
+child ends cleanly without being stretched over its parent's text. The validation uses
+source spans and unit boundaries rather than sentence punctuation. Existing saved
+indexes are revalidated. Valid colons, semicolons and partial maps remain usable.
 
 ## Known limits
 
@@ -55,7 +63,10 @@ saved indexes are revalidated. Valid colons, semicolons and partial maps remain 
   Compare against original HTML/PDF structure; disclose unresolved boundaries.
 - Unsupported statutory layouts and definition-specific locators require the documented
   parent-subsection or manual-verification approach. A recognised label alone does
-  not establish legal hierarchy or authenticity.
+  not establish legal hierarchy or authenticity. Text alone cannot tell a roman `(i)`
+  sub-limb from the letter after `(h)`; check that boundary against the source.
+- Unmarked trailing notes, signatures or annexes after a judgment's last paragraph
+  are not detected; inspect the end of each saved judgment text.
 - A helper pass checks evidence records and declared review. The agent/reviewer still
   decides proposition support, operative law, ratio/obiter, treatment and legal effect.
 - Public treatment searches do not establish comprehensive citator coverage. Subscription

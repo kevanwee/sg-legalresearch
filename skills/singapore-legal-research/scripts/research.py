@@ -122,7 +122,7 @@ def build_paragraphs(text, style):
     # belongs to which paragraph or silently drop potentially relevant material.
     note_block = (r"^\s*(?:(?:footnotes?|endnotes?|notes)\s*:?\s*$"
                   r"|\[(?:note|fn)\s*:?\s*\d+\]"
-                  r"|(?:footnote|endnote)\s+\d+\b)")
+                  r"|(?:footnote|endnote)\s+\d+\s*(?:[:.)\]—–-]|$))")
     if re.search(note_block, text, re.I | re.M):
         raise ValueError("separate footnote/endnote block in judgment text; preserve notes separately "
                          "and use a documented body-only extraction before indexing")

@@ -45,12 +45,24 @@ structural extraction, then map locators to zero-based Python string offsets in 
 saved UTF-8 text. Never substitute PDF viewer coordinates or a search-result snippet.
 The span begins with the unit's real label, e.g. `9A.` or `(b)`. Preserve the complete
 unit through its actual end. The checker rejects a mapped end that leaves continuation
-text before the next unit boundary: a following mapped unit, an unmapped explicit
-line-start provision label or supported Order/Schedule/Part heading, or end of source.
-This catches mid-word, mid-sentence and wrapped-line cutoffs without requiring a full
-stop; valid semicolons, colons and quoted endings are preserved. It also rejects an
-older saved index cropped in the same way. A parent cannot end before its mapped child.
-Unsupported layouts need a source-structured extraction rather than a guessed boundary.
+text before the next unit boundary. Valid boundaries are: a following mapped unit; an
+unmapped line-start section/rule/paragraph number or Order/Schedule/Part heading, or
+the next unit's heading line immediately before that number; an unmapped child label
+only when it is the unit's own or an ancestor's next sibling (`(b)`→`(c)` or inserted
+`(ba)`, `(2)`→`(3)` or `(2A)`, `(iv)`→`(v)`); the parent's declared trailing text; or
+end of source. Line-only amendment notes such as `[23/2018]` are skipped. This catches
+mid-word, mid-sentence and wrapped-line cutoffs, and a unit cut before its own unmapped
+sub-units, without requiring a full stop; valid semicolons, colons and quoted endings
+are preserved. It also rejects an older saved index cropped in the same way. A parent
+cannot end before its mapped child. Text alone cannot distinguish a roman `(i)` sub-limb
+from the letter that follows `(h)`, so check that case against the source. Unsupported
+layouts need a source-structured extraction rather than a guessed boundary.
+
+When a parent has trailing words after its last child, such as closing words, a proviso,
+an Explanation or Illustrations, set `tail_start` on the parent to the offset where that
+line begins. Its last child then ends there, and every mapped child must end before it.
+Do not stretch a child over the parent's closing words: a quotation from them must cite
+the parent itself. `tail_start` cannot point at a child label or mid-line.
 
 Review notes, amendments, tables and trailing material against the original. A source
 file already truncated at its own end, a lost label, or a misleading number inside

@@ -41,8 +41,10 @@ Repealed and not-in-force units cannot support an unqualified claim without an
 evidence-level date explanation; qualified findings and explained comparisons retain
 their visible status limits.
 Provision maps also reject mid-word, mid-sentence and wrapped-line cutoffs before
-remaining source prose, including cropped old indexes. Valid punctuation endings and
-unmapped sibling boundaries remain usable. Source files already truncated at EOF
+remaining source prose, including cropped old indexes, and units cut before their own
+unmapped sub-units. Valid punctuation endings, next-sibling and inserted-unit labels,
+the next section's heading line, amendment notes and declared parent closing words
+(`tail_start`) remain usable; quotations from closing words must cite the parent. Source files already truncated at EOF
 cannot be proved complete by their own saved spans.
 
 Repository checks cover Python syntax, required skill identity and UI invocation,

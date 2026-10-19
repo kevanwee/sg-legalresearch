@@ -271,6 +271,11 @@ class EvidenceTests(unittest.TestCase):
         rows = r.build_paragraphs("[1] Reasoning [note: 1] continues.\n[2] Final paragraph.", "bracketed")
         self.assertEqual(rows[0]["text"], "Reasoning [note: 1] continues.")
 
+    def test_prose_mentioning_a_footnote_is_not_a_note_block(self):
+        text = "[1] The respondent relied on\nFootnote 3 of the synthetic submissions.\n[2] Final paragraph."
+        rows = r.build_paragraphs(text, "bracketed")
+        self.assertIn("Footnote 3 of the synthetic submissions.", rows[0]["text"])
+
     def test_old_index_with_absorbed_note_is_rejected(self):
         source = self.case_source()
         path = r.inside(self.run, source["file"])

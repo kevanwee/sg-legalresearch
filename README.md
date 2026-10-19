@@ -359,10 +359,13 @@ distinguish **wrong instrument**, **wrong version** and **wrong provision**, pre
 the original citation and any separately verified proposed correction. See
 [statutory evidence](skills/singapore-legal-research/references/statutory-evidence.md)
 for map fields, version checks, precise locators and fresh-draft requirements.
-Mapped spans that cut off before continuation text are refused; complete units must
-end at a following unit boundary or the end of the saved source. This checks the
-saved text, so a source file already truncated at its own end still needs comparison
-with the original.
+Mapped spans that cut off before continuation text are refused, including a unit cut
+before its own unmapped sub-units. Complete units end at a following unit, the next
+sibling label, the next section's heading or number, or the end of the saved source.
+Where a parent has closing words after its last child, declare them with `tail_start`
+so the child can end cleanly; quotations from those words must cite the parent. This
+checks the saved text, so a source file already truncated at its own end still needs
+comparison with the original.
 
 Parent lead-in words remain context when a child is cited: to verify a quotation from
 the opening of `s 9A(2)`, cite and capture `s 9A(2)` itself. Definition-specific locators
