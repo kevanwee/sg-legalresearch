@@ -43,50 +43,50 @@
   <path d="M 300 222 V 302" class="flow"/>
   <path d="M 400 357 H 430" class="flow"/>
   <path d="M 650 357 H 730 V 510" class="flow"/>
-  <text x="677" y="402" class="label">Retrieve</text>
+  <text x="660" y="402" class="label">Retrieve</text>
   <path d="M 730 604 V 727 H 860" class="flow"/>
   <text x="745" y="674" class="label">Source text</text>
   <path d="M 970 680 V 412" class="flow"/>
   <text x="982" y="546" class="label">Exact passages</text>
   <path d="M 1080 357 H 1205 V 680" class="flow"/>
   <text x="1217" y="546" class="label">Reviewed evidence</text>
-  <path d="M 1315 727 H 1364" class="flow"/>
-  <path d="M 1400 691 V 590 H 1530 V 412" class="flow"/>
+  <path d="M 1315 727 H 1345" class="flow"/>
+  <path d="M 1400 672 V 590 H 1530 V 412" class="flow"/>
   <text x="1411" y="620" class="label">Yes</text>
-  <path d="M 1400 763 V 826 H 820 V 727 H 860" class="flow"/>
+  <path d="M 1400 782 V 826 H 820 V 727 H 860" class="flow"/>
   <text x="1020" y="814" class="label">No: correct records or record a genuine limit; repeat review</text>
-  <path d="M 1530 302 V 222" class="flow"/>
-  <path d="M 1530 128 V 108 H 540 V 128" class="flow"/>
-  <text x="904" y="102" class="label">After review: applicable professional checks and delivery</text>
+  <path d="M 1530 302 V 242 H 540 V 222" class="flow"/>
+  <text x="960" y="237" class="label">Findings for lawyer review</text>
   <path d="M 650 175 H 670" class="flow"/>
   <path d="M 890 175 H 910" class="flow"/>
   <path d="M 1130 175 H 1150" class="flow"/>
+  <path d="M 1370 175 H 1420" class="flow"/>
 
-  <!-- Lawyer tasks. -->
+  <!-- Lawyer tasks run from left to right after findings are returned. -->
   <rect x="200" y="128" width="200" height="94" rx="12" class="task"/>
   <text x="300" y="157" class="task-title">Give the task</text>
   <text x="300" y="182" class="task-text">Question or preserved draft</text>
   <text x="300" y="204" class="task-text">Facts, forum, relevant date</text>
-  <rect x="1420" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="1530" y="157" class="task-title">Review and decide</text>
-  <text x="1530" y="182" class="task-text">Read decisive passages</text>
-  <text x="1530" y="204" class="task-text">Resolve gaps; revise as needed</text>
   <rect x="430" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="540" y="157" class="task-title">Check later treatment</text>
-  <text x="540" y="182" class="task-text">Authorised citator if available</text>
-  <text x="540" y="204" class="task-text">Retain any access limitation</text>
+  <text x="540" y="157" class="task-title">Review and decide</text>
+  <text x="540" y="182" class="task-text">Read decisive passages</text>
+  <text x="540" y="204" class="task-text">Resolve gaps; revise as needed</text>
   <rect x="670" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="780" y="157" class="task-title">Check court format</text>
-  <text x="780" y="182" class="task-text">Applicable Practice Directions</text>
-  <text x="780" y="204" class="task-text">Filing and bundle requirements</text>
+  <text x="780" y="157" class="task-title">Check later treatment</text>
+  <text x="780" y="182" class="task-text">Authorised citator if available</text>
+  <text x="780" y="204" class="task-text">Retain any access limitation</text>
   <rect x="910" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="1020" y="157" class="task-title">Review and sign off</text>
-  <text x="1020" y="182" class="task-text">Resolve outstanding issues</text>
-  <text x="1020" y="204" class="task-text">Professional responsibility</text>
+  <text x="1020" y="157" class="task-title">Check court format</text>
+  <text x="1020" y="182" class="task-text">Applicable Practice Directions</text>
+  <text x="1020" y="204" class="task-text">Filing and bundle requirements</text>
   <rect x="1150" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="1260" y="157" class="task-title">File, serve or send</text>
-  <text x="1260" y="182" class="task-text">Lawyer-controlled action</text>
-  <text x="1260" y="204" class="task-text">Separate from skill execution</text>
+  <text x="1260" y="157" class="task-title">Review and sign off</text>
+  <text x="1260" y="182" class="task-text">Resolve outstanding issues</text>
+  <text x="1260" y="204" class="task-text">Professional responsibility</text>
+  <rect x="1420" y="128" width="220" height="94" rx="12" class="task"/>
+  <text x="1530" y="157" class="task-title">File, serve or send</text>
+  <text x="1530" y="182" class="task-text">Lawyer-controlled action</text>
+  <text x="1530" y="204" class="task-text">Separate from skill execution</text>
 
   <!-- Agent tasks describe instructions and judgment, not automated script powers. -->
   <rect x="200" y="302" width="200" height="110" rx="12" class="task"/>
@@ -125,7 +125,7 @@
   <text x="1205" y="709" class="task-title">Check saved records</text>
   <text x="1205" y="734" class="task-text">Hashes, spans and receipts</text>
   <text x="1205" y="756" class="task-text">Coverage, not legal judgment</text>
-  <path d="M 1400 691 L 1436 727 L 1400 763 L 1364 727 Z" fill="#fff6d6" stroke="#8a6d22" stroke-width="1.8"/>
+  <path d="M 1400 672 L 1455 727 L 1400 782 L 1345 727 Z" fill="#fff6d6" stroke="#8a6d22" stroke-width="1.8"/>
   <text x="1400" y="716" class="task-text"><tspan x="1400">Pass</tspan><tspan x="1400" dy="18">status?</tspan></text>
 
   <text x="24" y="893" class="subheading">Unavailable source → agent records an access gap. Wrong original citation → agent preserves it and verifies any proposed correction separately.</text>

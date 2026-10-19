@@ -118,6 +118,14 @@ def build_paragraphs(text, style):
     """Index explicit line-start labels; boundary accuracy still needs source review."""
     if style not in ("bracketed", "numbered"):
         raise ValueError("paragraph style must be bracketed or numbered")
+    # A conversion must keep notes separate. Refuse rather than guess which note
+    # belongs to which paragraph or silently drop potentially relevant material.
+    note_block = (r"^\s*(?:(?:footnotes?|endnotes?|notes)\s*:?\s*$"
+                  r"|\[(?:note|fn)\s*:?\s*\d+\]"
+                  r"|(?:footnote|endnote)\s+\d+\b)")
+    if re.search(note_block, text, re.I | re.M):
+        raise ValueError("separate footnote/endnote block in judgment text; preserve notes separately "
+                         "and use a documented body-only extraction before indexing")
     label = r"\[([1-9]\d*)\]" if style == "bracketed" else r"([1-9]\d*)"
     horizontal = r"[\t \u00a0\u2000-\u200a]"
     if re.search(r"^" + horizontal + "*" + label + horizontal + r"*\r?$", text, re.M):

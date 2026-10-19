@@ -4,6 +4,8 @@ A Singapore-specific legal research skill for Codex and Claude Code. Find author
 check a draft's citations, trace legislation and Hansard, and prepare research memos
 with evidence the reader can inspect.
 
+[Install](#install) · [How it works](#how-the-skill-works) · [Release review](docs/release-v0.1.0.md)
+
 The skill combines legal research instructions with offline Python helpers. It uses
 the research tools available in your agent session; it does not supply a legal database,
 LawNet subscription, or automated citator.
@@ -135,35 +137,108 @@ The reference PDFs are not redistributed; their titles, sections and fingerprint
 
 ## Install
 
-Requirements: a skill-capable agent, Python **3.11+** for the optional helpers, and live
-research access for current external verification. The helpers use only the Python
-standard library. No API keys are required by this package.
-The installed helper also supports `python -I`, `python -P` and `PYTHONSAFEPATH=1`;
-its bundled statutory module is loaded by file path without modifying `sys.path`.
+Use the **v0.1.0 release** for a pinned installation. These instructions are for
+local Codex and Claude Code sessions with filesystem skill support.
 
-Clone the repository, then install the skill for the runtime you use:
+### 1. Get the release
+
+You need Git for the clone route and Python **3.11+** for the installer and optional
+helpers. Check `python --version` first. On macOS/Linux, use `python3` if needed; on
+Windows PowerShell, `py -3` is an alternative if it selects Python 3.11 or later.
+No pip packages, API keys or global agent settings are required by this package.
+Current external verification uses the research tools available in your agent session;
+LawNet access requires your own authorised subscription where relevant.
 
 ```sh
-git clone https://github.com/kevanwee/sg-legalresearch-skill.git
+git clone --branch v0.1.0 --depth 1 https://github.com/kevanwee/sg-legalresearch-skill.git
 cd sg-legalresearch-skill
-python scripts/install_skill.py --target codex
-# Or: python scripts/install_skill.py --target claude
 ```
 
-The installer copies the self-contained skill to `~/.agents/skills/` for Codex or
-`~/.claude/skills/` for Claude Code and refuses to overwrite an existing installation.
-For an isolated project installation, supply `--skills-dir PATH_TO_PROJECT/.agents/skills`
-(or `.claude/skills`). It does not change global settings or install tools.
+Without Git, download the **Source code (zip)** from the
+[v0.1.0 release](https://github.com/kevanwee/sg-legalresearch-skill/releases/tag/v0.1.0),
+extract it, and open a terminal in the extracted `sg-legalresearch-skill-0.1.0` folder
+containing `README.md`, `scripts/` and `skills/`.
 
-Open a new agent session and ask naturally, or invoke `$singapore-legal-research` in
-Codex / `/singapore-legal-research` in Claude Code. Installation paths follow the
-[official OpenAI skills documentation](https://learn.chatgpt.com/docs/build-skills)
+### 2. Install for your agent
+
+For **Codex**, run:
+
+```sh
+python scripts/install_skill.py --target codex
+```
+
+For **Claude Code**, run:
+
+```sh
+python scripts/install_skill.py --target claude
+```
+
+Choose the agent you use; run both only if you want both installations. The installer
+prints the destination and copies the entire self-contained skill, not just `SKILL.md`:
+
+| Agent | Default installed folder |
+|---|---|
+| Codex | `~/.agents/skills/singapore-legal-research/` |
+| Claude Code | `~/.claude/skills/singapore-legal-research/` |
+
+`~` means your user home directory. For a project-only installation, replace
+`PATH_TO_YOUR_PROJECT` with your actual project folder (quote paths with spaces):
+
+```sh
+python scripts/install_skill.py --target codex --skills-dir "PATH_TO_YOUR_PROJECT/.agents/skills"
+# Claude Code uses:
+python scripts/install_skill.py --target claude --skills-dir "PATH_TO_YOUR_PROJECT/.claude/skills"
+```
+
+The installer refuses to overwrite an existing installation. The supported discovery
+locations are documented in the [official OpenAI skills documentation](https://learn.chatgpt.com/docs/build-skills)
 and [Claude Code skills documentation](https://code.claude.com/docs/en/skills).
+Personal-folder installation applies to local sessions; cloud sessions need the
+skill installed in their own environment or committed to the project's discovery folder.
 
-To update, pull the repository and replace the installed copy after reviewing your
-local changes. To uninstall, remove only the installed `singapore-legal-research` folder.
-You can instead copy `skills/singapore-legal-research/` manually to the appropriate
-skills directory. Do not install duplicate copies under several discovery roots.
+### 3. Confirm it works
+
+Start a new agent session. Invoke `$singapore-legal-research` in Codex or
+`/singapore-legal-research` in Claude Code, followed by a question, for example:
+
+> Find Singapore authority for this proposition. Retrieve the complete supporting
+> paragraphs, give pinpoint citations, and disclose any source or treatment gaps.
+
+For a default Codex installation, this terminal command checks the installed helper:
+
+```sh
+python -I "$HOME/.agents/skills/singapore-legal-research/scripts/research.py" --help
+```
+
+For Claude Code, substitute `.claude` for `.agents`; for a project installation,
+use the destination printed by the installer. `$HOME` works in PowerShell and common
+macOS/Linux shells. The command should list `init`, `snapshot`, `index-paragraphs`,
+`passages`, `index-provisions`, `provision`, `extract-docx`, `check` and `export-library`.
+The helper also supports `-P` and `PYTHONSAFEPATH=1`.
+
+If the skill does not appear, check that `SKILL.md`, `references/` and `scripts/` are
+inside the installed `singapore-legal-research` folder, restart the session, and check
+your agent's skill settings. Avoid duplicate copies in several discovery folders.
+If `python` cannot be found, use the Python launcher described in step 1. An
+"Installation already exists" message is intentional; follow the update steps below.
+
+### Manual install, update and uninstall
+
+For manual installation, copy the entire `skills/singapore-legal-research/` directory
+to your agent's skills folder above. The release also includes a compact
+`singapore-legal-research-v0.1.0.zip`: extract it and copy its
+`singapore-legal-research/` folder to the same location. Do not copy the surrounding
+repository folder or an extra nesting level. No installer is included in the compact
+archive. `SHA256SUMS.txt` records its SHA-256 checksum.
+
+To update, download the chosen newer release (or fetch tags and check out that tag in
+your clone), review any local skill changes, and move the existing installed folder
+to a backup **outside** all skill discovery folders. Run the installer again, or copy
+the new skill folder into place, and start a new session. Pulling the repository alone
+does not update the copied installation. A release-tag checkout is intentionally pinned.
+
+To uninstall, remove only the installed `singapore-legal-research` folder and start a
+new session. Private research runs are separate from the skill installation.
 
 ## How the skill works
 
@@ -246,6 +321,9 @@ The text indexer refuses numbering gaps, restarts and labels on their own lines,
 instead of silently merging paragraphs. Split separately numbered opinions into
 separate sources and prefer extraction that preserves the original source structure.
 These checks catch ambiguity; they do not prove a conversion retained every paragraph.
+Separate footnote/endnote headings and line-start note markers are refused too, so
+recognisable trailing notes cannot become part of the last indexed paragraph. Keep
+notes separately and document the source-structured body extraction.
 Statutory numbering follows the explicit provision map below, without a consecutive-number rule.
 
 ### Statutory provisions and fresh-draft checks
@@ -281,6 +359,10 @@ distinguish **wrong instrument**, **wrong version** and **wrong provision**, pre
 the original citation and any separately verified proposed correction. See
 [statutory evidence](skills/singapore-legal-research/references/statutory-evidence.md)
 for map fields, version checks, precise locators and fresh-draft requirements.
+Mapped spans that cut off before continuation text are refused; complete units must
+end at a following unit boundary or the end of the saved source. This checks the
+saved text, so a source file already truncated at its own end still needs comparison
+with the original.
 
 Parent lead-in words remain context when a child is cited: to verify a quotation from
 the opening of `s 9A(2)`, cite and capture `s 9A(2)` itself. Definition-specific locators

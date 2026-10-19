@@ -38,10 +38,20 @@ python skills/singapore-legal-research/scripts/research.py passages runs/matter 
 
 Only confirm boundaries after actually reviewing them. Plain-text extraction can
 confuse page headers, footnotes, quoted paragraph labels, and the court's own numbering.
-Inspect the first/last paragraph and trailing material too; a label parser cannot
-know that a footnote or annex belongs outside the last paragraph. Use a better
-documented source extraction if boundaries are ambiguous. Never change the court's
-numbering to make the helper accept it.
+The indexer refuses separate note blocks, including standalone Footnotes/Endnotes/
+Notes headings and line-start `[note: 1]`, `[fn 1]` or `Footnote 1` markers. This also
+applies when rechecking an older saved index: recognised notes cannot be absorbed
+into its last paragraph. Inline note references inside a paragraph remain intact.
+Keep the original source, preserve notes separately, and create a documented body-only
+text extraction that retains all actual paragraph continuations. Do not merely remove
+the note heading and leave its text in the body, or delete relevant notes from research.
+Notes relied on need their real note locator and manual verification, not a paragraph
+pinpoint inherited from the last paragraph.
+
+Inspect first/last paragraphs, signatures, annexes and other trailing material too.
+Unmarked notes whose structural distinction was already lost in conversion cannot
+be identified reliably from prose alone. Use the source's structure or a better
+documented extraction; never change the court's numbering to make the helper accept it.
 
 For HTML judgments, inspect the actual document structure. A court's numbered
 paragraph may continue through unnumbered blocks, subparagraphs and embedded

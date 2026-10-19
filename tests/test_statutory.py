@@ -168,6 +168,38 @@ class StatutoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "sibling provision spans overlap"):
             r.build_provisions(TEXT, manifest)
 
+    def test_provision_span_cannot_stop_mid_word_sentence_or_continuation(self):
+        text = "9A. A synthetic provision requires complete wording\nthrough this continuation line.\n9B. Next provision."
+        for end in (text.index("requires") + 3, text.index("complete"), text.index("\n") + 1,
+                    text.index("continuation") + 5):
+            manifest = {"provisions": [{"locator": "s 9A", "start": 0, "end": end,
+                                       "status": "in-force", "status_note": "Synthetic fixture."}]}
+            with self.subTest(end=end), self.assertRaisesRegex(ValueError, "cuts off before remaining source text"):
+                r.build_provisions(text, manifest)
+
+    def test_old_cropped_provision_index_is_rejected(self):
+        row = next(p for p in self.data["sources"][0]["provision_index"]["provisions"]
+                   if p["locator"] == "s 9A(2)(a)")
+        row["end"] = TEXT.index("condition") + 3
+        row["text"] = TEXT[row["start"]:row["end"]]
+        self.data["claims"][0]["evidence"][0]["passages"] = [copy.deepcopy(row)]
+        self.assertTrue(any("cuts off before remaining source text" in e for e in self.report()["errors"]))
+
+    def test_complete_units_may_end_in_semicolons_and_colons(self):
+        text = "9A. A synthetic lead-in:\n(a) first condition;\n(b) second condition;\n9B. Next provision."
+        end = text.index("9B.")
+        manifest = {"provisions": [{"locator": "s 9A", "start": 0, "end": end,
+                                   "status": "in-force", "status_note": "Synthetic fixture."}]}
+        self.assertEqual(r.build_provisions(text, manifest)[0]["end"], end)
+        lead_in = "9A. A synthetic complete lead-in:\n9B. Next provision."
+        manifest["provisions"][0]["end"] = lead_in.index("9B.")
+        self.assertEqual(r.build_provisions(lead_in, manifest)[0]["text"].rstrip()[-1], ":")
+
+    def test_partial_map_can_end_at_unmapped_sibling_boundary(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest["provisions"] = [p for p in manifest["provisions"] if p["locator"] != "s 9A(2)(b)"]
+        self.assertTrue(r.build_provisions(TEXT, manifest))
+
     def test_child_must_belong_to_its_actual_parent(self):
         manifest = copy.deepcopy(self.manifest)
         manifest["provisions"][0]["end"] = TEXT.index("(2)")

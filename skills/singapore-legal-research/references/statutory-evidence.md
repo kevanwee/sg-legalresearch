@@ -44,8 +44,18 @@ Obtain the hierarchy and complete boundaries from the actual source or a documen
 structural extraction, then map locators to zero-based Python string offsets in the
 saved UTF-8 text. Never substitute PDF viewer coordinates or a search-result snippet.
 The span begins with the unit's real label, e.g. `9A.` or `(b)`. Preserve the complete
-unit through its actual end. Review notes, amendments, tables and trailing material
-when deciding its boundary; a text-span check cannot determine completeness by itself.
+unit through its actual end. The checker rejects a mapped end that leaves continuation
+text before the next unit boundary: a following mapped unit, an unmapped explicit
+line-start provision label or supported Order/Schedule/Part heading, or end of source.
+This catches mid-word, mid-sentence and wrapped-line cutoffs without requiring a full
+stop; valid semicolons, colons and quoted endings are preserved. It also rejects an
+older saved index cropped in the same way. A parent cannot end before its mapped child.
+Unsupported layouts need a source-structured extraction rather than a guessed boundary.
+
+Review notes, amendments, tables and trailing material against the original. A source
+file already truncated at its own end, a lost label, or a misleading number inside
+quoted text cannot be certified complete from flattened text alone. Keep the original
+file and document the extraction; these checks do not establish source authenticity.
 
 The map has a non-empty `provisions` array. Each entry contains:
 

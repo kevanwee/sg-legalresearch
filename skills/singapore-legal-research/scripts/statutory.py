@@ -75,18 +75,41 @@ def build_provisions(text, manifest):
             parent = by_locator.get(row["parent"])
             if parent is None or not parent["start"] <= row["start"] < row["end"] <= parent["end"]:
                 raise ValueError(f"{row['locator']}: capture its complete parent provision and keep the child inside it")
+    def ancestor(a, b):
+        parent = b["parent"]
+        while parent:
+            if parent == a["locator"]:
+                return True
+            parent = by_locator[parent]["parent"]
+        return False
+
     for i, left in enumerate(rows):
         for right in rows[i + 1:]:
             if left["start"] < right["end"] and right["start"] < left["end"]:
-                def ancestor(a, b):
-                    parent = b["parent"]
-                    while parent:
-                        if parent == a["locator"]:
-                            return True
-                        parent = by_locator[parent]["parent"]
-                    return False
                 if not ancestor(left, right) and not ancestor(right, left):
                     raise ValueError("unrelated/sibling provision spans overlap; check the boundaries")
+    for row in rows:
+        # Check the remainder of the saved source, not sentence punctuation: units
+        # legitimately end with colons, semicolons, quotations and table cells.
+        end = row["end"]
+        following = end + len(text[end:]) - len(text[end:].lstrip())
+        if following == len(text):
+            continue
+        next_rows = [p for p in rows if p["start"] == following]
+        if next_rows:
+            if any(ancestor(row, p) for p in next_rows):
+                raise ValueError(f"{row['locator']}: provision span ends before its own child unit")
+            continue
+        # Unmapped neighbouring units may supply a visible boundary; only accept
+        # their explicit line-start labels, never arbitrary continuation prose.
+        line_start = text.rfind("\n", 0, following) + 1
+        at_line_start = not text[line_start:following].strip()
+        root_label = r"[1-9]\d*[A-Za-z]*(?:\.|[—–])"
+        heading = r"(?:ORDER\s+[1-9]\d*|(?:[A-Za-z]+\s+)?SCHEDULE|PART\s+(?:[IVXLCDM]+|[1-9]\d*))\b"
+        child_label = r"\([A-Za-z0-9]+\)" if row["parent"] else r"(?!)"
+        if not at_line_start or not re.match(r"(?:" + root_label + "|" + heading + "|" + child_label + ")", text[following:], re.I):
+            raise ValueError(f"{row['locator']}: provision span cuts off before remaining source text; "
+                             "extend it to the next unit boundary or end of the source")
     return rows
 
 

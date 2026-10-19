@@ -256,6 +256,33 @@ class EvidenceTests(unittest.TestCase):
             with self.subTest(pin=pin), self.assertRaises(ValueError):
                 r.parse_pinpoint(pin)
 
+    def test_trailing_note_blocks_are_refused_instead_of_absorbed(self):
+        for style, body in (("bracketed", "[1] First.\n[2] Final paragraph."),
+                            ("numbered", "1 First.\n2 Final paragraph.")):
+            for note in ("Footnotes\n1. Synthetic note text.", "ENDNOTES:\n1. Synthetic note text.",
+                         "Notes\nSynthetic note text.", "[note: 1] Synthetic note text.",
+                         "[fn 1] Synthetic note text.", "Footnote 1: Synthetic note text."):
+                for newline in ("\n", "\r\n"):
+                    text = (body + "\n" + note).replace("\n", newline)
+                    with self.subTest(style=style, note=note, newline=newline), self.assertRaisesRegex(ValueError, "separate footnote/endnote block"):
+                        r.build_paragraphs(text, style)
+
+    def test_inline_note_reference_is_not_a_note_block(self):
+        rows = r.build_paragraphs("[1] Reasoning [note: 1] continues.\n[2] Final paragraph.", "bracketed")
+        self.assertEqual(rows[0]["text"], "Reasoning [note: 1] continues.")
+
+    def test_old_index_with_absorbed_note_is_rejected(self):
+        source = self.case_source()
+        path = r.inside(self.run, source["file"])
+        text = self.file.read_text(encoding="utf-8") + "\n[note: 1] Synthetic note only."
+        path.write_text(text, encoding="utf-8")
+        source["sha256"] = source["text_sha256"] = r.digest(path)
+        source["paragraph_index"]["text_sha256"] = source["text_sha256"]
+        last = source["paragraph_index"]["paragraphs"][-1]
+        last.update(end=len(text), text=text[last["start"]:])
+        report = self.report()
+        self.assertTrue(any("separate footnote/endnote block" in e for e in report["errors"]))
+
     def test_missing_middle_label_and_spurious_number_are_rejected(self):
         examples = [
             ("bracketed", "[1] First paragraph.\nSecond paragraph without its label.\n[3] Third paragraph."),

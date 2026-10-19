@@ -26,6 +26,9 @@ and CRLF text), spurious high numbers, opinion numbering restarts, wrapped repor
 citations, and previously saved merged indexes that carry a boundary confirmation.
 The text indexer rejects these ambiguous inputs rather than merging or repairing them;
 entirely lost terminal labels/paragraphs still require comparison with the source.
+Separate note headings and line-start note markers are rejected, including in old
+indexes that absorbed trailing notes; inline references remain valid. Unmarked notes
+whose source structure was lost still require comparison with the original.
 Statutory tests cover exact provision spans and parent hierarchy, quotes from the
 wrong section/sibling, rules/orders/schedules, missing units, source/version date
 mismatches, wrong-instrument and wrong-version findings, original versus corrected
@@ -37,6 +40,10 @@ labels on separate lines. Statutory numbering is not subject to the case-law +1 
 Repealed and not-in-force units cannot support an unqualified claim without an
 evidence-level date explanation; qualified findings and explained comparisons retain
 their visible status limits.
+Provision maps also reject mid-word, mid-sentence and wrapped-line cutoffs before
+remaining source prose, including cropped old indexes. Valid punctuation endings and
+unmapped sibling boundaries remain usable. Source files already truncated at EOF
+cannot be proved complete by their own saved spans.
 
 Repository checks cover Python syntax, required skill identity and UI invocation,
 relative Markdown links and anchors, and code-fence balance. They do not fetch every
