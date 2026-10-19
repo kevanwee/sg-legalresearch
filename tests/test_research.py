@@ -57,6 +57,16 @@ class EvidenceTests(unittest.TestCase):
         self.save()
         return r.check_run(self.run)
 
+    def case_source(self):
+        source = self.data["sources"][0]
+        text = self.file.read_text(encoding="utf-8")
+        source.update(kind="case", paragraph_index={"style": "bracketed", "text_sha256": source["text_sha256"],
+            "boundaries_reviewed": True, "review_note": "Synthetic paragraph boundaries checked.",
+            "paragraphs": r.build_paragraphs(text, "bracketed")})
+        source["treatment"] = {"status": "not-checked", "note": "Synthetic fixture; no real treatment search.", "search_ids": []}
+        self.data["claims"][0]["evidence"][0]["passages"] = r.select_paragraphs(source["paragraph_index"]["paragraphs"], "[1]")
+        return source
+
     def test_reviewed_record_passes(self):
         self.assertEqual(self.report()["status"], "pass-record-checks")
 
@@ -141,7 +151,7 @@ class EvidenceTests(unittest.TestCase):
         self.assertTrue(any("version_review" in e for e in self.report()["errors"]))
 
     def test_public_search_is_limited(self):
-        s = self.data["sources"][0]
+        s = self.case_source()
         s.update(kind="case", treatment={"status": "public-search-limited",
             "note": "Synthetic searches only; no citator.", "search_ids": ["T1"]})
         self.data["search_log"] = [{"id": "T1", "database": "Synthetic database",
@@ -150,7 +160,7 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(self.report()["status"], "pass-with-limits")
 
     def test_treatment_claim_needs_search_evidence(self):
-        self.data["sources"][0].update(kind="case", treatment={"status": "citator-checked",
+        self.case_source().update(treatment={"status": "citator-checked",
             "note": "Unsupported claim of citator use", "search_ids": []})
         self.assertEqual(self.report()["status"], "fail")
 
@@ -166,6 +176,149 @@ class EvidenceTests(unittest.TestCase):
     def test_source_id_cannot_escape(self):
         with self.assertRaises(ValueError):
             r.snapshot(self.run, self.file, "../S2", "Synthetic", "other", "https://example.invalid", "id", "test")
+
+    def test_full_case_paragraph_is_required_even_for_a_paraphrase(self):
+        self.case_source()
+        self.assertFalse(self.report()["errors"])
+        del self.data["claims"][0]["evidence"][0]["passages"]
+        self.assertTrue(any("every full cited paragraph" in e for e in self.report()["errors"]))
+
+    def test_quote_from_different_paragraph_is_rejected(self):
+        self.case_source()
+        text = self.file.read_text(encoding="utf-8")
+        words = "A second sentence."
+        start = text.index(words)
+        self.data["quotes"] = [self.quote(words, start, start + len(words))]
+        self.assertTrue(any("outside the full paragraphs" in e for e in self.report()["errors"]))
+
+    def test_case_quote_within_cited_paragraph_passes(self):
+        self.case_source()
+        self.data["quotes"] = [self.quote()]
+        self.assertFalse(self.report()["errors"])
+
+    def test_disjoint_citation_does_not_cover_intervening_paragraph(self):
+        source = self.case_source()
+        # Extend the synthetic source fixture before assembling this test's evidence.
+        path = r.inside(self.run, source["file"])
+        text = path.read_text(encoding="utf-8") + "\n[3] A third sentence."
+        path.write_text(text, encoding="utf-8")
+        source["sha256"] = source["text_sha256"] = r.digest(path)
+        source["paragraph_index"].update(text_sha256=source["text_sha256"], paragraphs=r.build_paragraphs(text, "bracketed"))
+        ref = self.data["claims"][0]["evidence"][0]
+        ref.update(pinpoint="[1], [3]", passages=r.select_paragraphs(source["paragraph_index"]["paragraphs"], "[1], [3]"))
+        self.data["quotes"] = [dict(self.quote(text[4:], 4, len(text)), pinpoint="[1], [3]")]
+        self.assertTrue(any("outside the full paragraphs" in e for e in self.report()["errors"]))
+
+    def test_captured_passage_cannot_relabel_another_paragraph(self):
+        source = self.case_source()
+        bad = copy.deepcopy(source["paragraph_index"]["paragraphs"][1])
+        bad["paragraph"] = 1
+        self.data["claims"][0]["evidence"][0]["passages"] = [bad]
+        self.assertTrue(any("every full cited paragraph" in e for e in self.report()["errors"]))
+
+    def test_index_cannot_be_rewritten_to_match_a_wrong_pinpoint(self):
+        source = self.case_source()
+        source["paragraph_index"]["paragraphs"][0]["text"] = "Made up paragraph."
+        self.assertTrue(any("does not match source paragraph labels" in e for e in self.report()["errors"]))
+
+    def test_paragraph_range_captures_every_full_paragraph(self):
+        self.case_source()
+        self.save()
+        packet = r.capture_passages(self.run, "S1", "[1]-[2]")
+        self.assertEqual([p["paragraph"] for p in packet["evidence"]["passages"]], [1, 2])
+        self.assertTrue(packet["citation"].endswith("at [1]–[2]"))
+        self.assertIs(packet["evidence"]["pinpoint_reviewed"], False)
+
+    def test_missing_paragraph_and_overbroad_range_fail(self):
+        source = self.case_source()
+        for pin in ("[3]", "[1]–[3]", "[1]–[999999999]"):
+            with self.subTest(pin=pin), self.assertRaisesRegex(ValueError, "missing"):
+                r.select_paragraphs(source["paragraph_index"]["paragraphs"], pin)
+
+    def test_extraction_requires_explicit_reviewed_boundaries(self):
+        source = self.case_source()
+        source["paragraph_index"]["boundaries_reviewed"] = False
+        self.assertTrue(any("reviewed boundaries" in e for e in self.report()["errors"]))
+
+    def test_paragraph_cli_can_index_numbered_source_text(self):
+        self.save()
+        r.index_paragraphs(self.run, "S1", "bracketed", "Synthetic labels checked.")
+        self.assertEqual(len(r.capture_passages(self.run, "S1", "at [1], [2]")["evidence"]["passages"]), 2)
+        numbered = r.build_paragraphs("35\tFirst line.\nContinuation.\n36\u2003Second paragraph.", "numbered")
+        self.assertEqual(numbered[0]["text"], "First line.\nContinuation.")
+        self.assertEqual(numbered[1]["paragraph"], 36)
+
+    def test_ambiguous_numbering_and_malformed_pinpoints_fail(self):
+        for text in ("[1] First\n[1] Repeated", "[2] First\n[1] Reverse", "No labels", "[1] First\n[1A] Lettered"):
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                r.build_paragraphs(text, "bracketed")
+        for pin in ("[2]-[1]", "35", "[0]", "[35A]", "[1] garbage", ""):
+            with self.subTest(pin=pin), self.assertRaises(ValueError):
+                r.parse_pinpoint(pin)
+
+    def as_cited(self, pin="[1]", status="supported"):
+        self.case_source()
+        self.data["mode"] = "cite-check"
+        citation = "Synthetic case SYNTHETIC-1 at " + pin
+        self.data["inventory"] = [{"id": "draft/p:1", "text": "A proposition: " + citation + ".",
+                                   "reviewed": True, "claim_ids": ["C1"], "reason": ""}]
+        self.data["claims"][0].update(location="draft/p:1", citation_check={"source_id": "S1",
+            "citation": citation, "pinpoint": pin, "result": status, "reason": "Synthetic citation review."})
+
+    def test_cite_check_requires_original_citation_record(self):
+        self.as_cited()
+        self.assertFalse(self.report()["errors"])
+        del self.data["claims"][0]["citation_check"]
+        self.assertTrue(any("preserving the original citation" in e for e in self.report()["errors"]))
+
+    def test_corrected_pinpoint_cannot_replace_original_check(self):
+        self.as_cited()
+        ref = self.data["claims"][0]["evidence"][0]
+        ref.update(pinpoint="[2]", passages=r.select_paragraphs(self.data["sources"][0]["paragraph_index"]["paragraphs"], "[2]"))
+        self.assertTrue(any("checked separately from any correction" in e for e in self.report()["errors"]))
+
+    def test_wrong_pinpoint_retains_original_and_separate_correction(self):
+        self.as_cited(status="wrong-pinpoint")
+        claim = self.data["claims"][0]
+        claim["assessment"] = "qualified"
+        correction = copy.deepcopy(claim["evidence"][0])
+        correction.update(pinpoint="[2]", passages=r.select_paragraphs(self.data["sources"][0]["paragraph_index"]["paragraphs"], "[2]"),
+                          support_note="Proposed replacement, separate from original [1].")
+        claim["evidence"].append(correction)
+        self.assertFalse(self.report()["errors"])
+        claim["evidence"].pop()
+        self.assertTrue(any("separately captured proposed replacement" in e for e in self.report()["errors"]))
+
+    def test_original_citation_must_occur_in_draft(self):
+        self.as_cited()
+        self.data["claims"][0]["citation_check"]["citation"] = "Changed citation at [1]"
+        self.assertTrue(any("not present in the inventoried draft" in e for e in self.report()["errors"]))
+
+    def test_misattributed_original_pinpoint_is_rejected(self):
+        self.as_cited()
+        self.data["claims"][0]["citation_check"]["pinpoint"] = "[2]"
+        self.assertTrue(any("does not occur in the original citation" in e for e in self.report()["errors"]))
+
+    def test_equivalent_pinpoint_punctuation_keeps_original_text(self):
+        self.as_cited(pin="[1] and [2]")
+        ref = self.data["claims"][0]["evidence"][0]
+        ref.update(pinpoint="[1], [2]", passages=r.select_paragraphs(self.data["sources"][0]["paragraph_index"]["paragraphs"], "[1], [2]"))
+        self.assertFalse(self.report()["errors"])
+
+    def test_unverified_pinpoint_cannot_be_marked_supported(self):
+        self.as_cited(status="unverifiable")
+        self.assertTrue(any("cannot be marked supported" in e for e in self.report()["errors"]))
+
+    def test_page_fallback_must_be_explained_and_source_backed(self):
+        source = self.case_source()
+        del source["paragraph_index"]
+        source["paragraphs_unavailable_reason"] = "Synthetic historical report has no numbered paragraphs."
+        ref = self.data["claims"][0]["evidence"][0]
+        ref.update(locator_type="page", pinpoint="p 10", locator_note="Compared passage to synthetic printed page 10.")
+        ref["passages"] = [{k: v for k, v in ref["passages"][0].items() if k != "paragraph"}]
+        self.assertFalse(self.report()["errors"])
+        source["paragraphs_unavailable_reason"] = ""
+        self.assertTrue(any("page fallback" in e for e in self.report()["errors"]))
 
     def test_draft_claim_must_be_linked_to_its_location(self):
         self.data["mode"] = "cite-check"

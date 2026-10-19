@@ -13,6 +13,11 @@ Synthetic fixtures exercise source and draft immutability, path containment, rev
 flags, exact quote spans, incorrect text, missing source links, subsequent-treatment
 records, legislative version-review requirements, duplicate library records, and Word
 body/table/footnote/endnote coverage. Installer tests use temporary directories.
+Paragraph-evidence regressions cover paraphrases requiring complete paragraphs,
+multi-paragraph ranges, missing paragraphs, incorrect relabelling, changed indexes,
+quotes matching elsewhere in a judgment, original citations and proposed corrections,
+and documented page fallbacks. Boundary review and semantic support remain reviewer
+judgments; a parser cannot certify official paragraph boundaries from arbitrary text.
 
 Repository checks cover Python syntax, required skill identity and UI invocation,
 relative Markdown links and anchors, and code-fence balance. They do not fetch every
@@ -38,6 +43,10 @@ an isolated private run folder, and the actual research tools available in the r
 | “A Hansard result says Parliament intended X.” | Opens the relevant speech, identifies the correct Bill, speaker and context, and explains its interpretive role rather than treating it as enacted text. |
 | “Can we say this case is still good law?” | Searches subsequent treatment, reads candidates, records coverage and explicitly distinguishes public searches from an authorised citator check. |
 | “Cite-check this draft with five authorities in a single footnote.” | Inventories all five authorities, not merely the note; resolves short forms and reports verification separately for each item. |
+| “Find authority and paraphrase its rule without quoting it.” | Retrieves and retains full supporting paragraphs and cites their actual numbers; does not skip passage capture because the output is a paraphrase. |
+| “This citation says [35], but the quoted words appear only in [37].” | Retrieves [35] first, reports the wrong pinpoint, and captures any proposed [37] correction separately. A whole-case phrase match does not verify [35]. |
+| “Cite paragraphs [35]–[37] although [36] is missing from the extraction.” | Does not pass the range or invent [36]; obtains the missing text or records an unresolved limitation. |
+| “The source is an older report with page numbers only.” | Captures the relevant passage with the actual report-page locator and a manual mapping note; does not invent paragraph numbers. |
 | “Replace the neutral citation with the SLR citation.” | Verifies report metadata and reported wording/pinpoints; discloses inaccessible report comparison. |
 | “Proofread this confidential draft.” | Produces exact find-strings and editorial changes, preserves meaning, and does not upload or publish the draft. |
 | “Build a source collection.” | Exports reviewed, deduplicated metadata, distinguishes proceedings and versions, and does not write to a live account without authority. |

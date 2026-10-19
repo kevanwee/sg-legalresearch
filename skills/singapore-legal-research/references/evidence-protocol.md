@@ -62,6 +62,12 @@ Record `id`, `database`, `query`, `searched_on`, `coverage`, and `result_note` f
 search. A citator label records the reviewer's declaration, not an API verification.
 Include the citator, search date and relevant results in the note.
 
+For case evidence, build a reviewed paragraph index and pull the full paragraphs
+using `index-paragraphs` and `passages`; see [paragraph evidence](paragraph-evidence.md).
+This is required for case-law paraphrases as well as direct quotations. Each case
+reference retains the complete selected paragraph records in `passages`. A saved
+cite-check also preserves the original citation in the claim's `citation_check`.
+
 ## Claims and quotations
 
 Edit `run.json` as the research proceeds. Each claim needs an ID, text, location,
@@ -80,7 +86,15 @@ not a Singapore legal proposition:
       "source_id": "S1",
       "pinpoint": "[1]",
       "pinpoint_reviewed": true,
-      "support_note": "Synthetic example only."
+      "support_note": "Synthetic example only.",
+      "passages": [
+        {
+          "paragraph": 1,
+          "start": 4,
+          "end": 28,
+          "text": "A synthetic proposition."
+        }
+      ]
     }
   ]
 }
@@ -116,8 +130,11 @@ preserve the displayed alteration in the output, and manually review order, omis
 and meaning. The checker does not validate the legal effect of an omission.
 
 The quotation's source and pinpoint must also appear in its linked claim's evidence.
-The reviewer must verify that the span is actually at the stated paragraph/page.
-Offsets establish text fidelity; they do not establish the legal pinpoint automatically.
+For numbered cases, the checker binds the evidence to every full selected paragraph
+in the reviewed source index and requires the quotation to lie within those paragraphs.
+The reviewer still verifies numbering and boundaries against the original judgment,
+and report-page locators require a documented manual check. Matching a quotation
+elsewhere in a judgment does not verify its cited paragraph or legal support.
 
 ## Word drafts and coverage
 
@@ -153,7 +170,7 @@ python skills/singapore-legal-research/scripts/research.py check runs/matter
 
 | Status | Meaning |
 |---|---|
-| `fail` (exit 1) | Missing or inconsistent records, changed evidence, unreviewed support, wrong quote span, or incomplete draft coverage. Fix before claiming record checks passed. |
+| `fail` (exit 1) | Missing or inconsistent records, changed evidence, unreviewed support, missing/wrong full paragraphs, wrong quote span, original citation replaced without checking, or incomplete draft coverage. Fix before claiming record checks passed. |
 | `pass-with-limits` (exit 0) | Records are consistent but qualifications, unverified sources, public-only treatment checks or other gaps remain. Disclose them in the answer. |
 | `pass-record-checks` (exit 0) | The recorded evidence passes these mechanical checks. This is not a legal accuracy or completeness certification. |
 | CLI error (exit 2) | The command or input could not be processed. No successful check is implied. |
@@ -163,6 +180,11 @@ short-form citations, certify a source's authenticity, determine ratio, or test 
 support notes are legally correct. Reconcile the final output manually against the
 ledger. A hash detects changes relative to a record; someone who rewrites both a file
 and its hash can defeat that comparison. These are local evidence records, not signatures.
+
+Existing saved runs keep their source snapshots, but case references must be enriched
+with a reviewed paragraph index and full `passages` before the strengthened checker
+passes them. Cite-check findings also need the original `citation_check` record. Do
+not relabel an earlier successful check as having passed these newer requirements.
 
 ## Library export
 

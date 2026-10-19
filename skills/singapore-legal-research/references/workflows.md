@@ -11,7 +11,11 @@ amendments or later appellate decisions.
 
 Deliver an answer-first memo with scope and law-as-at date, applicable rules, fact-sensitive
 application, adverse authority, alternative arguments, and remaining questions. Link
-each material proposition to a precise passage. Include a source table with version,
+each material proposition to a precise passage. For each case, retrieve and retain the
+full supporting numbered paragraphs even when paraphrasing; give the verified case
+citation with `at [n]`, `at [n]–[m]`, or explicit disjoint pinpoints. Keep adjacent
+context available and avoid a range that includes unread or unnecessary paragraphs.
+Include a source table with version,
 support, treatment search, and access status. Stop when the decisive branches have
 been researched and contrary searches performed, or disclose exactly which branch
 remains open because of access, time, or missing facts. Never pad with irrelevant cases.
@@ -24,6 +28,9 @@ Check whether the proposed wording overstates the holding. Supply the best autho
 or a small number of complementary authorities with pinpoints, links and a one-sentence
 explanation of support. Explain why foreign authority is needed if used. If no exact
 support is found, say so and propose narrower wording with its actual support.
+Keep the complete supporting paragraph(s), not just the sentence that matched a
+search query. Use [paragraph evidence](paragraph-evidence.md) to bind those passages
+to the pinpoint and source version in a saved run.
 
 ## Cite-check
 
@@ -38,6 +45,17 @@ list every authority, quotation, cross-reference and unsupported legal propositi
 one paragraph can contain several. The extraction is a structural inventory, not an
 automatic legal citation detector. Resolve `ibid`, `id`, `supra`, `above`, and defined
 case-name chains to their actual antecedents. Mark ambiguous chains unresolved.
+
+For every cited case, first preserve the original citation verbatim and resolve any
+short form. Retrieve its specifically cited paragraph(s) from the version identified;
+retain the complete paragraphs, then compare the proposition and any quoted words
+side by side with that passage. A full-judgment phrase match is insufficient. Check
+whether the passage is judicial reasoning, obiter, submissions, or quoted authority.
+If support exists only elsewhere, report the original pinpoint as wrong and capture
+the proposed replacement separately. Never silently repair the citation and pass it.
+Use `citation_check` to record supported, wrong-pinpoint, unsupported, missing-pinpoint
+or unverifiable, with a reason. A missing original pinpoint is a finding; research
+for a replacement does not retrospectively verify the original citation.
 
 For every item, check identity, bibliographic accuracy, source version, pinpoint,
 quotation fidelity, proposition support, and treatment as applicable. Include adverse

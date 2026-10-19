@@ -31,6 +31,22 @@ class PackagingTests(unittest.TestCase):
                                      capture_output=True, text=True, cwd=folder)
             self.assertEqual(checked.returncode, 1)
             self.assertEqual(json.loads(checked.stdout)["status"], "fail")
+            source = Path(folder) / "judgment.txt"
+            source.write_text("[1] Synthetic first paragraph.\n[2] Synthetic second paragraph.", encoding="utf-8")
+            snapshot = subprocess.run([sys.executable, str(script), "snapshot", str(run), str(source),
+                "--id", "S1", "--kind", "case", "--title", "Synthetic case", "--url", "https://example.invalid/case",
+                "--citation", "SYNTHETIC-1", "--version", "test fixture"], capture_output=True, text=True, cwd=folder)
+            self.assertEqual(snapshot.returncode, 0, snapshot.stderr)
+            index_args = [sys.executable, str(script), "index-paragraphs", str(run), "--source", "S1",
+                          "--style", "bracketed", "--review-note", "Synthetic boundaries checked."]
+            not_confirmed = subprocess.run(index_args, capture_output=True, text=True, cwd=folder)
+            self.assertNotEqual(not_confirmed.returncode, 0)
+            indexed = subprocess.run(index_args + ["--confirm-boundaries"], capture_output=True, text=True, cwd=folder)
+            self.assertEqual(indexed.returncode, 0, indexed.stderr)
+            packet = subprocess.run([sys.executable, str(script), "passages", str(run), "--source", "S1",
+                                     "--pinpoint", "[1]-[2]"], capture_output=True, text=True, cwd=folder)
+            self.assertEqual(packet.returncode, 0, packet.stderr)
+            self.assertEqual(len(json.loads(packet.stdout)["evidence"]["passages"]), 2)
             again = subprocess.run(args, capture_output=True, text=True, cwd=folder)
             self.assertEqual(again.returncode, 2)
             with self.assertRaises(FileExistsError):

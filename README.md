@@ -169,17 +169,18 @@ skills directory. Do not install duplicate copies under several discovery roots.
 flowchart TD
     IN["Question or preserved draft"] --> MAP["Issues and location inventory"]
     MAP --> FIND["Retrieve primary sources"]
-    FIND --> READ["Review identity, version, support and treatment"]
+    FIND --> READ["Capture full supporting paragraphs; review identity, version, support and treatment"]
     READ --> LEDGER["Evidence ledger and source snapshots"]
-    LEDGER --> CHECK["Offline checks: hashes, coverage and exact quote spans"]
+    LEDGER --> CHECK["Offline checks: full cited paragraphs, quote spans, hashes and coverage"]
     CHECK -->|"record error"| FIX["Correct evidence or disclose unresolved finding"]
     FIX --> LEDGER
     CHECK -->|"records consistent"| REVIEW["Re-read decisive passages and final output"]
     REVIEW --> OUT["Answer with sources, adverse authority and explicit limits"]
 ```
 
-The Python helper can preserve source bytes, extract Word paragraphs and notes, check
-recorded quotation spans, detect changed snapshots and missing draft locations, and
+The Python helper can preserve source bytes, extract Word paragraphs and notes, index
+judgment paragraph labels, pull full cited paragraphs, bind quotations to those
+paragraphs, detect changed snapshots and missing draft locations, and
 export reviewed CSL-JSON records. The agent must identify individual citations, read
 the sources, assess support, and check subsequent treatment. A passing check is **not**
 a finding that the law is correct, complete, current or suitable for filing.
@@ -198,6 +199,35 @@ Full commands, JSON fields, quotation offsets, and check status meanings are in 
 Store actual research outside this public repository where practical. `runs/`, local
 working material, PDFs, Word documents and environment files are ignored as a safeguard.
 Ignoring a file does not remove it if someone has already committed it.
+
+### Paragraph-level research and cite-checking
+
+For case-law research, the skill retrieves the **complete supporting paragraph(s)**
+even when the answer paraphrases the law. Citations include the verified case name
+and report/neutral citation followed by `at [35]`, `at [35]–[37]`, or explicit disjoint
+pinpoints. Full paragraphs stay in the private evidence record; the answer can give
+a concise explanation or extract. Every paragraph in a cited range must be read.
+
+Cite-checking works in the other direction: preserve the citation exactly as drafted,
+retrieve **its specified paragraphs**, and compare their content with the proposition
+or quotation. If support appears elsewhere, report the wrong pinpoint and retain the
+original and proposed replacement passages separately. Finding a phrase somewhere
+else in the judgment cannot pass the original citation.
+
+After snapshotting a judgment's text, the helpers can capture the evidence:
+
+```sh
+python skills/singapore-legal-research/scripts/research.py index-paragraphs runs/example --source S1 --style bracketed --confirm-boundaries --review-note "Checked numbering and complete boundaries against the judgment"
+python skills/singapore-legal-research/scripts/research.py passages runs/example --source S1 --pinpoint "[35]-[37]"
+```
+
+These commands assume source `S1` exists and those paragraph labels are in its saved
+text. The second command returns complete paragraph text, offsets, source version and
+the pinpointed citation; legal support still requires review. Older reports without
+numbered paragraphs use documented page locators. Statutes and Hansard retain their
+actual provision/column/page locators. See [paragraph evidence](skills/singapore-legal-research/references/paragraph-evidence.md)
+for the workflow, original-citation findings, source-format limits and migration of
+earlier saved runs.
 
 ## How a lawyer uses it
 
@@ -227,14 +257,14 @@ flowchart TD
         MAP["Map issues; plan sources"] --> RET["Retrieve primary sources: SSO, eLitigation, Parliament, LawNet if available"]
         RET --> ACC{"Source accessible?"}
         ACC -->|"no"| GAP["Record access gap; do not fill from memory"]
-        ACC -->|"yes"| SUP["Check version, support, adverse authority and treatment"]
+        ACC -->|"yes"| SUP["Capture full supporting paragraphs; check version, support and treatment"]
         GAP --> MEMO
         SUP --> MEMO["Answer-first memo with pinpoints, limits and search coverage"]
-        INV["Inventory every body, table, footnote and endnote location"] --> ITEM["Check each authority, quote, pinpoint and short form"]
+        INV["Inventory every body, table, footnote and endnote location"] --> ITEM["Resolve original citations; retrieve and check the exact cited paragraphs"]
         ITEM --> FIND["Findings with exact find-strings, substantive issues before style"]
     end
     subgraph HLP["Helper script: optional saved run"]
-        LEDGER["init, snapshot and extract-docx"] --> CHK{"check status"}
+        LEDGER["init, snapshot, index-paragraphs, passages and extract-docx"] --> CHK{"check status"}
         CHK -->|"fail"| REPAIR["Complete or correct the records"]
         REPAIR --> CHK
         CHK -->|"pass or pass-with-limits"| REC["Evidence ledger with disclosed limits"]
@@ -278,6 +308,8 @@ references for [workflows](skills/singapore-legal-research/references/workflows.
 [Hansard](skills/singapore-legal-research/references/legislation-hansard.md),
 [citations](skills/singapore-legal-research/references/citations.md), and
 [evidence](skills/singapore-legal-research/references/evidence-protocol.md).
+The [paragraph-evidence protocol](skills/singapore-legal-research/references/paragraph-evidence.md)
+binds case-law support and cite-check findings to the actual cited passages.
 Source and citation guidance was checked on **20 October 2026**; refresh it when used.
 
 ## Contributions and licence

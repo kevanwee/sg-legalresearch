@@ -79,6 +79,109 @@ def load_run(root):
     return data
 
 
+def parse_pinpoint(value):
+    """Parse an explicit paragraph pinpoint, never a year/report citation."""
+    if not nonempty(value):
+        raise ValueError("a paragraph pinpoint is required")
+    value = re.sub(r"^at\s+", "", value.strip())
+    value = re.sub(r"\s+and\s+", ", ", value)
+    unit = r"\[([1-9]\d*)\](?:\s*[-–—]\s*\[([1-9]\d*)\])?"
+    if not re.fullmatch(unit + r"(?:\s*,\s*" + unit + r")*", value):
+        raise ValueError("use paragraph pinpoints such as [35], [35]–[37], or [35], [39]")
+    ranges = [(int(m[1]), int(m[2] or m[1])) for m in re.finditer(unit, value)]
+    if any(end < start for start, end in ranges):
+        raise ValueError("paragraph ranges must run forwards")
+    return ranges
+
+
+def canonical_pinpoint(value):
+    return ", ".join(f"[{a}]" if a == b else f"[{a}]–[{b}]" for a, b in parse_pinpoint(value))
+
+
+def build_paragraphs(text, style):
+    """Index explicit line-start labels; boundary accuracy still needs source review."""
+    if style not in ("bracketed", "numbered"):
+        raise ValueError("paragraph style must be bracketed or numbered")
+    label = r"\[([1-9]\d*)\]" if style == "bracketed" else r"([1-9]\d*)"
+    lettered = r"\[[1-9]\d*[A-Za-z]\]" if style == "bracketed" else r"[1-9]\d*[A-Za-z]"
+    if re.search(r"^[ \t]*" + lettered + r"[\t \u00a0\u2000-\u200a]+", text, re.M):
+        raise ValueError("lettered paragraph labels need manual verification; this indexer supports integer labels only")
+    matches = list(re.finditer(r"^[ \t]*" + label + r"[\t \u00a0\u2000-\u200a]+(?=\S)", text, re.M))
+    if not matches:
+        raise ValueError("no explicit paragraph labels found; use a suitable source text extraction")
+    numbers = [int(m[1]) for m in matches]
+    if any(b <= a for a, b in zip(numbers, numbers[1:])):
+        raise ValueError("duplicate or out-of-order paragraph labels; inspect extraction/footnotes")
+    rows = []
+    for i, match in enumerate(matches):
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        end = start + len(text[start:end].rstrip())
+        if not text[start:end].strip():
+            raise ValueError("empty paragraph")
+        rows.append({"paragraph": int(match[1]), "start": start, "end": end, "text": text[start:end]})
+    return rows
+
+
+def checked_paragraphs(source, text):
+    index = source.get("paragraph_index")
+    if not isinstance(index, dict) or index.get("boundaries_reviewed") is not True or not nonempty(index.get("review_note")):
+        raise ValueError("case evidence needs a paragraph index with reviewed boundaries")
+    if index.get("text_sha256") != source.get("text_sha256"):
+        raise ValueError("paragraph index refers to a different text snapshot")
+    expected = build_paragraphs(text, index.get("style"))
+    if index.get("paragraphs") != expected:
+        raise ValueError("paragraph index does not match source paragraph labels, full text and offsets")
+    return expected
+
+
+def select_paragraphs(rows, pinpoint):
+    selected, seen = [], set()
+    for first, last in parse_pinpoint(pinpoint):
+        matches = [p for p in rows if first <= p["paragraph"] <= last]
+        if len(matches) != last - first + 1:
+            raise ValueError("cited paragraph or part of its range is missing from the source")
+        for p in matches:
+            if p["paragraph"] not in seen:
+                selected.append(dict(p))
+                seen.add(p["paragraph"])
+    return selected
+
+
+def source_and_text(root, source_id):
+    data = load_run(root)
+    source = next((s for s in data["sources"] if s.get("id") == source_id), None)
+    if source is None:
+        raise ValueError("unknown source id")
+    for p, h in (("file", "sha256"), ("text_file", "text_sha256")):
+        if digest(inside(root, source[p])) != source[h]:
+            raise ValueError("source snapshot changed; do not index altered evidence")
+    return data, source, inside(root, source["text_file"]).read_text(encoding="utf-8-sig")
+
+
+def index_paragraphs(root, source_id, style, review_note):
+    if not nonempty(review_note):
+        raise ValueError("explain how paragraph boundaries and numbering were checked against the source")
+    data, source, text = source_and_text(root, source_id)
+    source["paragraph_index"] = {"style": style, "text_sha256": source["text_sha256"],
+        "boundaries_reviewed": True, "review_note": review_note, "paragraphs": build_paragraphs(text, style)}
+    write_json(Path(root) / "run.json", data)
+    return {"source_id": source_id, "paragraphs_indexed": len(source["paragraph_index"]["paragraphs"])}
+
+
+def capture_passages(root, source_id, pinpoint):
+    _, source, text = source_and_text(root, source_id)
+    paragraphs = select_paragraphs(checked_paragraphs(source, text), pinpoint)
+    citation = source["citation"]
+    if source["title"] not in citation:
+        citation = source["title"] + " " + citation
+    pinpoint = canonical_pinpoint(pinpoint)
+    return {"case_name": source["title"], "citation": citation + " at " + pinpoint,
+            "version": source["version"], "url": source["url"],
+            "evidence": {"source_id": source_id, "pinpoint": pinpoint, "passages": paragraphs,
+                         "pinpoint_reviewed": False, "support_note": ""}}
+
+
 def init_run(root, question, mode, research_date, law_as_at):
     iso_date(research_date)
     iso_date(law_as_at)
@@ -242,7 +345,7 @@ def check_run(root):
     searches = indexed(data["search_log"], "search_log")
     inventory = indexed(data["inventory"], "inventory")
     quotes = indexed(data["quotes"], "quotes")
-    texts = {}
+    texts, paragraph_rows = {}, {}
 
     def check_hash(record, path_key, hash_key, label):
         try:
@@ -289,6 +392,11 @@ def check_run(root):
                 errors.append(f"{key}: reviewed source needs retrieved_on")
         if not (source.get("identity_verified") is True and source.get("full_text_reviewed") is True):
             limits.append(f"{key}: source not reviewed")
+        if source.get("paragraph_index") is not None and key in texts:
+            try:
+                paragraph_rows[key] = checked_paragraphs(source, texts[key])
+            except ValueError as exc:
+                errors.append(f"{key}: {exc}")
 
     used = set()
     for key, claim in claims.items():
@@ -317,6 +425,83 @@ def check_run(root):
             if assessment in ("supported", "qualified") and not (
                     sources[sid].get("identity_verified") is True and sources[sid].get("full_text_reviewed") is True):
                 errors.append(f"{key}: support relies on unreviewed source {sid}")
+            if sources[sid].get("kind") == "case":
+                try:
+                    if ref.get("locator_type", "paragraph") == "paragraph":
+                        if sid not in paragraph_rows:
+                            raise ValueError("case evidence needs a valid reviewed paragraph index")
+                        expected = select_paragraphs(paragraph_rows[sid], ref.get("pinpoint"))
+                        if ref.get("passages") != expected:
+                            raise ValueError("case evidence must retain every full cited paragraph with its source offsets")
+                    elif ref.get("locator_type") == "page":
+                        if sources[sid].get("paragraph_index") is not None or not nonempty(sources[sid].get("paragraphs_unavailable_reason")):
+                            raise ValueError("page fallback needs an unnumbered source and paragraphs_unavailable_reason")
+                        if not nonempty(ref.get("locator_note")) or not isinstance(ref.get("passages"), list) or not ref["passages"]:
+                            raise ValueError("page fallback needs source passages and a locator_note")
+                        for passage in ref["passages"]:
+                            if not isinstance(passage, dict):
+                                raise ValueError("malformed page passage")
+                            a, b = passage.get("start"), passage.get("end")
+                            if (sid not in texts or type(a) is not int or type(b) is not int
+                                    or not 0 <= a < b <= len(texts[sid]) or not nonempty(passage.get("text"))
+                                    or texts[sid][a:b] != passage["text"]):
+                                raise ValueError("page passage does not match its source span")
+                        limits.append(f"{key}: page locator reviewed manually: {ref['locator_note']}")
+                    else:
+                        raise ValueError("case locator_type must be paragraph or page")
+                except ValueError as exc:
+                    errors.append(f"{key}: {exc}")
+
+        has_case = any(isinstance(ref, dict) and isinstance(ref.get("source_id"), str)
+                       and sources.get(ref["source_id"], {}).get("kind") == "case" for ref in refs)
+        if "citation_check" in claim or (data["mode"] == "cite-check" and has_case):
+            cited = claim.get("citation_check")
+            if not isinstance(cited, dict):
+                errors.append(f"{key}: cite-check case finding needs citation_check preserving the original citation")
+                continue
+            status = cited.get("result")
+            sid, pin = cited.get("source_id"), cited.get("pinpoint")
+            if status not in ("supported", "wrong-pinpoint", "unsupported", "missing-pinpoint", "unverifiable"):
+                errors.append(f"{key}: invalid citation_check result")
+            if not all(nonempty(cited.get(f)) for f in ("citation", "reason")) or not isinstance(pin, str):
+                errors.append(f"{key}: citation_check needs original citation, pinpoint and reason")
+                continue
+            location = inventory.get(claim.get("location"), {}) if isinstance(claim.get("location"), str) else {}
+            draft_text = location.get("text", "")
+            if data["mode"] == "cite-check" and (not isinstance(draft_text, str) or normalise(cited["citation"]) not in normalise(draft_text)):
+                errors.append(f"{key}: original citation is not present in the inventoried draft location")
+            if status == "missing-pinpoint" and pin:
+                errors.append(f"{key}: missing-pinpoint must preserve an empty original pinpoint")
+            if status not in ("missing-pinpoint", "unverifiable"):
+                if not isinstance(sid, str) or sources.get(sid, {}).get("kind") != "case" or not nonempty(pin):
+                    errors.append(f"{key}: checked case citation needs its source and original pinpoint")
+                    continue
+                # Preserve literal locators from the draft; canonicalise only dash/space variants.
+                squash = lambda s: re.sub(r"\s+", "", s).replace("–", "-").replace("—", "-")
+                def same_locator(ref):
+                    if not nonempty(ref.get("pinpoint")):
+                        return False
+                    if ref.get("locator_type", "paragraph") == "paragraph" and sid in paragraph_rows:
+                        try:
+                            return select_paragraphs(paragraph_rows[sid], ref["pinpoint"]) == select_paragraphs(paragraph_rows[sid], pin)
+                        except ValueError:
+                            return False
+                    return squash(ref["pinpoint"]) == squash(pin)
+                if squash(pin) not in squash(cited["citation"]):
+                    errors.append(f"{key}: original pinpoint does not occur in the original citation")
+                linked = [ref for ref in refs if isinstance(ref, dict) and ref.get("source_id") == sid
+                          and same_locator(ref)]
+                if not linked:
+                    errors.append(f"{key}: original cited paragraph must be checked separately from any correction")
+                if status == "wrong-pinpoint" and not any(isinstance(ref, dict) and ref.get("source_id") == sid
+                        and nonempty(ref.get("pinpoint")) and not same_locator(ref) for ref in refs):
+                    errors.append(f"{key}: wrong-pinpoint needs separately captured proposed replacement paragraphs")
+            if status != "supported":
+                limits.append(f"{key}: citation {status}: {cited['reason']}")
+                if assessment == "supported":
+                    errors.append(f"{key}: a defective or unverified citation cannot be marked supported")
+            elif assessment not in ("supported", "qualified"):
+                errors.append(f"{key}: supported citation conflicts with claim assessment")
 
     for sid in used:
         source = sources[sid]
@@ -355,6 +540,15 @@ def check_run(root):
             errors.append(f"{key}: quote pinpoint not reviewed")
         if not (sources[sid].get("identity_verified") is True and sources[sid].get("full_text_reviewed") is True):
             errors.append(f"{key}: quotation source is unreviewed")
+        if sources[sid].get("kind") == "case" and type(start) is int and type(end) is int:
+            matching = [ref for ref in refs if isinstance(ref, dict) and ref.get("source_id") == sid
+                        and ref.get("pinpoint") == quote.get("pinpoint")]
+            spans = [p for ref in matching if isinstance(ref.get("passages"), list) for p in ref["passages"] if isinstance(p, dict)
+                     and type(p.get("start")) is int and type(p.get("end")) is int]
+            covered = any(p["start"] <= start < p["end"] for p in spans) and any(p["start"] < end <= p["end"] for p in spans)
+            skipped = any(p["start"] < end and start < p["end"] and p not in spans for p in paragraph_rows.get(sid, []))
+            if not covered or skipped:
+                errors.append(f"{key}: quotation lies outside the full paragraphs/passages cited")
 
     draft = data.get("draft")
     if data["mode"] == "cite-check" and not draft and not inventory:
@@ -461,6 +655,16 @@ def main(argv=None):
     snap.add_argument("--kind", choices=KINDS, required=True)
     snap.add_argument("--text", type=Path)
     snap.add_argument("--transformation", default="")
+    index = sub.add_parser("index-paragraphs", help="index explicit judgment paragraph labels after boundary review")
+    index.add_argument("run", type=Path)
+    index.add_argument("--source", required=True)
+    index.add_argument("--style", choices=("bracketed", "numbered"), required=True)
+    index.add_argument("--confirm-boundaries", action="store_true", required=True)
+    index.add_argument("--review-note", required=True)
+    passages = sub.add_parser("passages", help="pull full paragraphs for an exact pinpoint or range")
+    passages.add_argument("run", type=Path)
+    passages.add_argument("--source", required=True)
+    passages.add_argument("--pinpoint", required=True)
     docx = sub.add_parser("extract-docx", help="snapshot a Word draft and inventory text")
     docx.add_argument("run", type=Path)
     docx.add_argument("file", type=Path)
@@ -479,6 +683,10 @@ def main(argv=None):
                               args.citation, args.version, args.text, args.transformation)
         elif args.command == "extract-docx":
             output = attach_draft(args.run, args.file)
+        elif args.command == "index-paragraphs":
+            output = index_paragraphs(args.run, args.source, args.style, args.review_note)
+        elif args.command == "passages":
+            output = capture_passages(args.run, args.source, args.pinpoint)
         elif args.command == "check":
             output = check_run(args.run)
         else:

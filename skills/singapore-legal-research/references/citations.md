@@ -22,7 +22,7 @@ the rule-making publisher. Consult the guide itself for exceptions and foreign s
 |---|---|
 | Reported case | Verify the case name, year, volume if present, series, first page and pinpoint. Prefer the appropriate SLR/SLR(R) report under the applicable court directions. |
 | Unreported case | Use the assigned neutral citation and actual pinpoint. Do not invent a report citation or add an “unreported” label by default. |
-| Case pinpoint | Distinguish paragraph numbers in square brackets from report pages. Confirm the locator in the version cited. |
+| Case pinpoint | Retrieve the complete paragraph(s) in the version cited. Use `at [35]` for one paragraph, `at [35]–[37]` for a continuous range, and explicit pinpoints for disjoint paragraphs; distinguish report pages. |
 | Legislation | Use its verified short title, year, edition where applicable and provision. Historical chapter citations and modern enactment-year titles need different treatment. |
 | Hansard | Record debate date, volume and column if supplied, speaker and capacity, plus a direct link. Use the guide's electronic format where conventional locators are unavailable. |
 
@@ -34,6 +34,9 @@ Neutral court designators commonly encountered include `SGCA`, `SGHC(A)`, `SGHC`
 `SGHCR`, `SGHC(I)` and `SGHCF`. Preserve parentheses and verify the designator from the
 judgment. `SGHC` before 2 January 2021 denotes the former High Court; thereafter
 it denotes the General Division. Check the source for other courts' designators.
+
+Apply [paragraph evidence](paragraph-evidence.md) to paraphrases as well as quotations.
+During cite-checking, verify the original cited passage before proposing any correction.
 
 Do not substitute an SLR citation into a quotation checked only against eLitigation.
 The reported text can have editorial differences. If the report is inaccessible,

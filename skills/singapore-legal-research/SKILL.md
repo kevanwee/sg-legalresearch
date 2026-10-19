@@ -31,6 +31,7 @@ request; distinguish it from historical law and the date a website was retrieved
 Read [sources and authority](references/sources-authority.md) for research work and
 [Singapore citations](references/citations.md) when checking or supplying citations.
 Use [the evidence protocol](references/evidence-protocol.md) for saved runs and scripts.
+For case-law research and cite-checking, read [paragraph evidence](references/paragraph-evidence.md).
 For prose-only proofreading, use the proofread mode without performing new research.
 
 ## Research discipline
@@ -52,7 +53,12 @@ For prose-only proofreading, use the proofread mode without performing new resea
 4. **Read for support.** Identify the ratio, obiter, separate opinions, and whether
    quoted material is the court's reasoning or a party's submission. Explain why the
    source supports the precise proposition and what factual limits matter. Prefer
-   directly relevant local authority and disclose adverse authority.
+   directly relevant local authority and disclose adverse authority. Always retrieve
+   the full numbered paragraph(s) supporting a case-law proposition, including a
+   paraphrase. Preserve their exact text, labels and source version; cite the case name,
+   verified report/neutral citation and the smallest sufficient pinpoint, e.g. `at [35]`
+   or `at [35]–[37]`. Capture every paragraph in a range. Read adjacent context without
+   substituting a whole-case search or isolated matching phrase for the cited passage.
 5. **Check treatment.** Search later decisions using full names, report and neutral
    citations, distinctive passages, and relevant legal terms. Read candidate treatments
    and identify the proposition affected. Check appeals and legislative displacement.
@@ -62,7 +68,11 @@ For prose-only proofreading, use the proofread mode without performing new resea
    citation against the actual source. Reconcile every draft location in a cite-check.
    Another review pass is useful for substantial work, but do not require unavailable
    agents or expand delegation permissions. Record whether review was by the same agent
-   or a separate reviewer. Separate mechanical checks from legal judgments.
+   or a separate reviewer. In a cite-check, start with the exact paragraph(s) specified
+   by the original citation, compare them with the draft's proposition/quotation, and
+   record whether they support it. Keep an incorrect original pinpoint and any proposed
+   replacement separate. Missing or inaccessible paragraphs remain unverified.
+   Separate mechanical checks from legal judgments.
 
 ## Evidence and delivery
 
@@ -70,8 +80,11 @@ Keep research runs in a private working folder, never in the public source repos
 For saved research, initialise a ledger with `scripts/research.py init`, snapshot
 retrieved files with `snapshot`, complete the review fields, and run `check` before
 delivery. Use the exact installed script path; do not assume the repository is present.
-For a brief chat-only answer, a compact source table and stated limits are sufficient;
-do not fabricate a saved audit trail.
+For a brief chat-only answer, still retrieve the full supporting paragraphs and cite
+their actual locators; the tool transcript may hold the retrieved evidence without a
+saved run. Do not fabricate a saved audit trail. Where a source has no numbered
+paragraphs, capture the relevant passage and use its real page, statutory provision
+or Hansard locator, explaining the exception rather than inventing paragraph numbers.
 
 Lead with the answer and its material qualification. Then provide the analysis at the
 requested depth, pinpoint citations with source links, contrary authorities, unresolved
