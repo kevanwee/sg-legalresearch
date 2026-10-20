@@ -116,11 +116,19 @@ also covers SAL publications, Singapore Law Watch and sector regulators. Search
 snippets and commentary help find material; the underlying source supplies evidence.
 Public judgment searches are not comprehensive citator checks.
 
-The skill retrieves within each site's terms. SSO permits automated extraction only
-from 3 a.m. to 7 a.m. Singapore time, so at other times the agent asks you to save the
-SSO provision view from your browser (as HTML or PDF) and works from that copy. It
-identifies scripted requests honestly, never bypasses a block or challenge, and stops
-and asks for the page if a site refuses access. See [access and retrieval conduct](skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
+The skill retrieves within each site's terms, in this order:
+
+1. **An agent-operated real browser**, such as Claude in Chrome or the desktop app's
+   browser. The agent opens the few pages it needs at reading pace and saves them, with
+   no stealth or disguise. In testing, SSO loaded normally this way at any hour,
+   including historical versions.
+2. **Pages you save from your browser**, if no agent browser is available or a page is
+   refused. The agent lists the exact links to save.
+3. **Scripted requests**, only within each site's terms. SSO permits automated
+   extraction only from 3 a.m. to 7 a.m. Singapore time.
+
+The agent never bypasses a block or challenge; if a site refuses access, it stops and
+moves to the next route. See [access and retrieval conduct](skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
 
 ## Statute citations have changed
 

@@ -55,11 +55,12 @@ For a provision cited in an older judgment:
 
 For SSO's renumbering guidance and publication-status explanations consult its
 [FAQ, especially B1 and E1–E3](https://sso.agc.gov.sg/FAQ). Retrieve SSO text under
-[access and retrieval conduct](sources-authority.md#access-and-retrieval-conduct):
-outside 3–7 a.m. Singapore time, ask the user to save the provision view from a normal
-browser rather than scripting requests. If a source blocks retrieval, disclose that and
-use a user-supplied copy or official download rather than an unverified third-party
-paraphrase.
+[access and retrieval conduct](sources-authority.md#access-and-retrieval-conduct): open
+the provision view in an agent-operated real browser where available, otherwise ask the
+user to save it; do not script SSO requests outside 3–7 a.m. Singapore time. Use
+`ValidDate=YYYYMMDD` for a past version and record the page's status line. If a source
+blocks retrieval, disclose that and use a user-supplied copy or official download rather
+than an unverified third-party paraphrase.
 
 ## Version receipt
 
