@@ -8,11 +8,13 @@ transformation that still needs review against the original page.
 import html as html_module
 from html.parser import HTMLParser
 import re
+from statistics import median
 
 ELITIGATION_TRANSFORMATION = (
     "extract-elitigation: numbered Judg-1 paragraphs as [n]; unnumbered paragraphs, "
     "sub-paragraphs and quotations kept as continuation lines of the preceding paragraph; "
-    "headings, author lines, signatures and counsel removed; footnote pop-ups moved to a "
+    "opinion boundaries tracked; separate sections and trailing blocks saved separately; "
+    "headings and author lines omitted from paragraph text; footnote pop-ups moved to a "
     "separate notes file with inline [note: N] markers; whitespace normalised within blocks.")
 
 SSO_TRANSFORMATION = (
@@ -21,7 +23,6 @@ SSO_TRANSFORMATION = (
     "list and footer removed; whitespace normalised within lines.")
 
 NUMBERED = re.compile(r"\s*(\d+)[  \t]+(.*)", re.S)
-EXCLUDED = ("Judg-Heading", "Judg-Sign", "Judg-Lawyers", "Judg-EOF")
 
 
 def clean(text):
@@ -97,28 +98,83 @@ def extract_elitigation(html):
     """Return opinions (each with [n] paragraph text), separated notes and a reconciliation report."""
     parser = _Judgment()
     parser.feed(html)
-    opinions, current, report = [], None, {
-        "html_numbered_blocks": 0, "spacer_blocks": 0, "continuation_blocks": 0,
-        "excluded_blocks": 0, "warnings": []}
+    opinions, current, trailing = [], None, []
+    closed = None
+    report = {"html_numbered_blocks": 0, "spacer_blocks": 0, "continuation_blocks": 0,
+              "excluded_blocks": 0, "block_counts": {}, "source_block_classes": {},
+              "paragraph_sizes": [], "warnings": []}
+
+    def count(kind):
+        counts = report["block_counts"]
+        counts[kind] = counts.get(kind, 0) + 1
+
+    def retain(cls, text, reason):
+        trailing.append({"class": cls, "text": text, "reason": reason})
 
     def start_opinion(author):
-        nonlocal current
-        current = {"author": author, "lines": [], "numbers": []}
+        nonlocal current, closed
+        closed = None
+        current = {"author": author, "lines": [], "numbers": [], "sizes": []}
         opinions.append(current)
 
-    for cls, raw in parser.blocks:
-        if cls == "Judg-Author":
-            if current is None or current["numbers"]:
-                start_opinion(clean(raw))
-            else:
-                current["author"] = clean(raw)
-            continue
-        if cls.startswith(EXCLUDED):
-            report["excluded_blocks"] += 1
-            continue
+    for block_index, (cls, raw) in enumerate(parser.blocks):
+        classes = report["source_block_classes"]
+        classes[cls] = classes.get(cls, 0) + 1
+        text = clean(raw)
         match = NUMBERED.match(raw) if cls == "Judg-1" else None
         if match:
             report["html_numbered_blocks"] += 1
+        if cls == "Judg-Author":
+            count("author")
+            if current is None or current["numbers"] or closed:
+                start_opinion(text)
+            else:
+                current["author"] = text
+            continue
+        section_heading = cls.startswith("Judg-Heading") and re.match(
+            r"^(?:annex(?:es|ures?)?|appendix|appendices|schedules?|attachments?)\b", text, re.I)
+        # A plural overview heading can introduce the next ordinary body paragraph
+        # (e.g. a paragraph describing the annexes), rather than start an annex.
+        overview = False
+        if section_heading and not closed and current and current["numbers"] and re.fullmatch(
+                r"annexes|annexures|appendices|schedules|attachments", text, re.I):
+            following = next(((c, t) for c, t in parser.blocks[block_index + 1:] if clean(t)), None)
+            next_number = NUMBERED.match(following[1]) if following and following[0] == "Judg-1" else None
+            overview = bool(next_number and int(next_number[1]) == current["numbers"][-1] + 1)
+        if section_heading and not overview:
+            closed = "separate section heading"
+            count("section_boundary")
+            retain(cls, text, closed)
+            report["warnings"].append(f"separate section retained outside opinion text: {text}")
+            continue
+        if cls.startswith(("Judg-Sign", "Judg-Lawyers", "Judg-EOF")):
+            closed = "opinion ended at signature, counsel or end marker"
+            count("opinion_end")
+            report["excluded_blocks"] += 1
+            if text:
+                retain(cls, text, closed)
+            continue
+        if closed:
+            count("trailing")
+            if text:
+                retain(cls, text, closed)
+            if match:
+                report["warnings"].append("numbered block after an opinion end retained as trailing material; "
+                                          "a new author line is needed to start another opinion")
+            continue
+        if cls.startswith("Judg-Heading"):
+            count("heading")
+            report["excluded_blocks"] += 1
+            continue
+        # An unsupported labelled section must not masquerade as unnumbered prose.
+        if current and current["numbers"] and re.match(r"^\[?[A-Z]\.[1-9]\d*\]?\s", text):
+            closed = "unsupported section numbering"
+            count("section_boundary")
+            retain(cls, text, closed)
+            report["warnings"].append("unsupported section numbering retained outside opinion text: " + text[:80])
+            continue
+        if match:
+            count("numbered")
             number = int(match[1])
             if current is None:
                 start_opinion("")
@@ -129,35 +185,48 @@ def extract_elitigation(html):
             elif current["numbers"] and number != current["numbers"][-1] + 1:
                 report["warnings"].append(f"numbering gap: [{current['numbers'][-1]}] then [{number}]")
             current["numbers"].append(number)
-            current["lines"].append(f"[{number}] {clean(match[2])}")
+            content = clean(match[2])
+            current["lines"].append(f"[{number}] {content}")
+            current["sizes"].append(len(content))
             continue
         if current is None or not current["numbers"]:
-            continue  # Front matter before the first numbered paragraph.
-        text = clean(raw)
-        if cls.startswith("Judg-Quote"):
+            count("front_matter")
+            continue
+        if cls.startswith("Judg-Quote") or cls in ("Judg-1", "Judg-2", "Judg-3", "Judg-4"):
             if text:
-                current["lines"].append("    " + text)
-                report["continuation_blocks"] += 1
-        elif cls in ("Judg-1", "Judg-2", "Judg-3", "Judg-4"):
-            if text:
-                current["lines"].append(text)
+                count("continuation")
+                current["lines"].append(("    " if cls.startswith("Judg-Quote") else "") + text)
+                current["sizes"][-1] += 1 + len(text)
                 report["continuation_blocks"] += 1
             else:
+                count("spacer")
                 report["spacer_blocks"] += 1
+        else:
+            count("unrecognised")
+            retain(cls, text, "unrecognised block type")
+            report["warnings"].append(f"unrecognised block retained outside opinion text: {cls}")
     opinions = [o for o in opinions if o["numbers"]]
     if not opinions:
         raise ValueError("no numbered judgment paragraphs found; check that this is a saved eLitigation judgment page")
     extracted = sum(len(o["numbers"]) for o in opinions)
     if extracted != report["html_numbered_blocks"]:
-        report["warnings"].append("extracted paragraph count differs from numbered blocks in the page")
+        report["warnings"].append("extracted paragraph count differs from numbered blocks in the page; "
+                                  "review separate/trailing sections")
     for opinion in opinions:
-        numbers = opinion["numbers"]
+        numbers, sizes = opinion["numbers"], opinion["sizes"]
         if numbers != list(range(numbers[0], numbers[0] + len(numbers))):
             report["warnings"].append(f"opinion '{opinion['author']}' numbering is not consecutive")
+        baseline = median(sizes[:-1]) if len(sizes) > 1 else None
+        report["paragraph_sizes"].append({"author": opinion["author"], "last_paragraph": numbers[-1],
+                                          "last_characters": sizes[-1], "preceding_median": baseline})
+        if (baseline is not None and sizes[-1] > max(2000, baseline * 10)) or sizes[-1] > 50000:
+            report["warnings"].append(f"unusually large final paragraph [{numbers[-1]}]; "
+                                      "inspect source boundaries (size is a diagnostic, not a boundary rule)")
     return {"header": clean(" ".join(parser.header)),
             "opinions": [{"author": o["author"], "first": o["numbers"][0], "last": o["numbers"][-1],
                           "paragraphs": len(o["numbers"]), "text": "\n".join(o["lines"]) + "\n"} for o in opinions],
             "notes": [f"[note: {i}] {n}" for i, n in enumerate(parser.notes, 1)],
+            "trailing": trailing,
             "report": dict(report, extracted_paragraphs=extracted)}
 
 

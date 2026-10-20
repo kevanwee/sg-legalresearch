@@ -48,6 +48,19 @@ spacers and continuations. Review any warnings, then snapshot the saved page wit
 `--text` set to the output file and `--transformation` set to the reported
 transformation. The command never fetches a page and never overwrites a file.
 
+Signatures, counsel and end markers close an opinion; a new author line can start
+another opinion after them. Annex/Appendix/Annexure/Schedule/Attachment headings and
+unsupported `A.1`-style sections are boundaries, not paragraph continuations. Their
+text and other trailing/unrecognised blocks are retained in `*-trailing.txt` (override
+with `--trailing PATH`), with classes/reasons in the JSON report. Review these files;
+separated material can still matter to the research and needs its actual locator.
+The report counts all block types and gives final-paragraph size statistics. An
+unusually large final paragraph generates a diagnostic warning; size never changes
+the extracted boundary or certifies that the extraction is complete.
+A plural overview heading such as "Annexes" followed immediately by the next
+consecutive body paragraph stays in the running opinion; it can introduce a
+discussion of annexes rather than start one. Check that distinction against the source.
+
 After snapshotting the actual source and any documented text extraction, identify
 its explicit line-start paragraph-label format. `bracketed` accepts `[35] Text`;
 `numbered` accepts `35 Text` or `35` followed by a tab/em-space and text on the same

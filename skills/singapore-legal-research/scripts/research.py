@@ -414,7 +414,7 @@ def write_new_text(path, text):
         stream.write(text)
 
 
-def extract_elitigation_page(html_file, out, notes_out=None):
+def extract_elitigation_page(html_file, out, notes_out=None, trailing_out=None):
     """Convert a saved eLitigation page to [n] paragraph text without overwriting files."""
     result = converters.extract_elitigation(Path(html_file).read_text(encoding="utf-8-sig"))
     out = Path(out)
@@ -422,7 +422,11 @@ def extract_elitigation_page(html_file, out, notes_out=None):
     targets = [out.with_name(f"{out.stem}-opinion-{i}{out.suffix}") if many else out
                for i in range(1, len(result["opinions"]) + 1)]
     notes_out = Path(notes_out) if notes_out else out.with_name(out.stem + "-notes" + out.suffix)
-    for path in targets + ([notes_out] if result["notes"] else []):
+    trailing_out = Path(trailing_out) if trailing_out else out.with_name(out.stem + "-trailing" + out.suffix)
+    outputs = targets + ([notes_out] if result["notes"] else []) + ([trailing_out] if result["trailing"] else [])
+    if len({path.resolve() for path in outputs}) != len(outputs):
+        raise ValueError("opinion, notes and trailing output paths must be distinct")
+    for path in outputs:
         if path.exists():
             raise FileExistsError(f"{path} already exists; choose new output paths")
     files = []
@@ -432,8 +436,13 @@ def extract_elitigation_page(html_file, out, notes_out=None):
                       "last": opinion["last"], "paragraphs": opinion["paragraphs"]})
     if result["notes"]:
         write_new_text(notes_out, "\n".join(result["notes"]) + "\n")
+    if result["trailing"]:
+        write_new_text(trailing_out, "\n\n".join(
+            f"[{block['class']}: {block['reason']}]\n{block['text']}" for block in result["trailing"]) + "\n")
     return {"header": result["header"], "opinions": files,
             "notes_file": str(notes_out) if result["notes"] else None, "notes": len(result["notes"]),
+            "trailing_file": str(trailing_out) if result["trailing"] else None,
+            "trailing_blocks": result["trailing"],
             "report": result["report"], "transformation": converters.ELITIGATION_TRANSFORMATION,
             "next": "Review the warnings and header, then snapshot the saved page with --text set to "
                     "each opinion file and this transformation; separate opinions need separate source IDs."}
@@ -927,6 +936,7 @@ def main(argv=None):
     elit.add_argument("html", type=Path)
     elit.add_argument("--out", type=Path, required=True)
     elit.add_argument("--notes", type=Path)
+    elit.add_argument("--trailing", type=Path)
     sso = sub.add_parser("extract-sso", help="convert a saved SSO provision view to text and report its version status")
     sso.add_argument("html", type=Path)
     sso.add_argument("--out", type=Path, required=True)
@@ -949,7 +959,7 @@ def main(argv=None):
         elif args.command == "quote":
             output = locate_quote(args.run, args.source, args.pinpoint, args.text, args.occurrence, args.id, args.claim)
         elif args.command == "extract-elitigation":
-            output = extract_elitigation_page(args.html, args.out, args.notes)
+            output = extract_elitigation_page(args.html, args.out, args.notes, args.trailing)
         elif args.command == "extract-sso":
             output = extract_sso_page(args.html, args.out)
         elif args.command == "extract-docx":
