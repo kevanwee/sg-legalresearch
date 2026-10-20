@@ -6,6 +6,7 @@ transformation that still needs review against the original page.
 """
 
 import html as html_module
+from collections import Counter
 from html.parser import HTMLParser
 import re
 from statistics import median
@@ -39,14 +40,23 @@ class _Judgment(HTMLParser):
         self.blocks, self.notes, self.header = [], [], []
         self.cls, self.depth, self.buf = None, 0, []
         self.skip, self.sup, self.note, self.in_header = 0, False, None, 0
+        self.references, self.sup_buf = [], []
+        self.sup_button, self.sup_target = False, None
+        self.note_depth, self.modal_id, self.modal_header = 0, None, []
 
     def handle_starttag(self, tag, attrs):
         cls = dict(attrs).get("class") or ""
         if self.skip:
+            if self.note_depth and tag in self.HEADER_BREAKS:
+                self.note.append(" ")
             if tag == "div":
                 self.skip += 1
                 if cls.startswith("FootnoteRef"):
-                    self.note = []
+                    if self.note is None:
+                        self.note = []
+                    else:
+                        self.note.append(" ")
+                    self.note_depth = self.skip
             return
         if self.in_header:
             self.in_header += tag == "div"
@@ -54,10 +64,15 @@ class _Judgment(HTMLParser):
             self.in_header = 1
         if self.in_header and tag in self.HEADER_BREAKS:
             self.header.append(" ")
-        if tag == "div" and self.cls and cls.startswith("modal"):
+        if tag == "div" and cls.startswith("modal"):
             self.skip, self.note = 1, None
+            self.note_depth, self.modal_id, self.modal_header = 0, dict(attrs).get("id"), []
         elif tag == "sup" and self.cls:
             self.sup = True
+            self.sup_buf, self.sup_button, self.sup_target = [], False, None
+        elif tag == "button" and self.sup:
+            self.sup_button = True
+            self.sup_target = (dict(attrs).get("data-target") or "").removeprefix("#") or None
         elif tag == "div":
             if self.cls is None and cls.startswith("Judg-"):
                 self.cls, self.depth, self.buf = cls.split()[0], 1, []
@@ -68,10 +83,16 @@ class _Judgment(HTMLParser):
 
     def handle_endtag(self, tag):
         if self.skip:
+            if self.note_depth and tag in self.HEADER_BREAKS:
+                self.note.append(" ")
             if tag == "div":
+                if self.skip == self.note_depth:
+                    self.note_depth = 0
                 self.skip -= 1
                 if self.skip == 0 and self.note is not None:
-                    self.notes.append(clean("".join(self.note)))
+                    label = re.search(r"\bFoot\s*Note\s*:?\s*(\d+)\b", "".join(self.modal_header), re.I)
+                    self.notes.append({"number": label[1] if label else None, "target": self.modal_id,
+                                       "text": clean("".join(self.note))})
                     self.note = None
             return
         if self.in_header:
@@ -80,6 +101,13 @@ class _Judgment(HTMLParser):
             if tag == "div":
                 self.in_header -= 1
         if tag == "sup":
+            if self.sup:
+                number = clean("".join(self.sup_buf))
+                if self.sup_button and re.fullmatch(r"\d+", number):
+                    self.references.append({"number": number, "target": self.sup_target})
+                    self.buf.append(f"[note: {number}]")
+                else:
+                    self.buf.extend(self.sup_buf)
             self.sup = False
         elif tag == "div" and self.cls is not None:
             self.depth -= 1
@@ -89,16 +117,51 @@ class _Judgment(HTMLParser):
 
     def handle_data(self, data):
         if self.skip:
-            if self.note is not None:
+            if self.note is not None and self.note_depth:
                 self.note.append(data)
+            elif self.note is None:
+                self.modal_header.append(data)
             return
         if self.in_header:
             self.header.append(data)
         if self.cls and self.sup:
-            if data.strip():
-                self.buf.append(f"[note: {data.strip()}]")
+            self.sup_buf.append(data)
         elif self.cls:
             self.buf.append(data)
+
+
+def _judgment_notes(parser):
+    """Resolve note labels from source titles/targets; never invent collection-order ids."""
+    notes, warnings, mismatched = [], [], []
+    for note in parser.notes:
+        labels = {ref["number"] for ref in parser.references
+                  if note["target"] and ref["target"] == note["target"]}
+        number = note["number"]
+        if number is None and len(labels) == 1:
+            number = next(iter(labels))
+        if labels and (len(labels) != 1 or (number is not None and labels != {number})):
+            mismatched.append({"target": note["target"], "definition": number, "references": sorted(labels)})
+        notes.append(dict(note, number=number))
+    references = Counter(ref["number"] for ref in parser.references)
+    definitions = Counter(note["number"] for note in notes if note["number"] is not None)
+    missing = sorted(set(references) - set(definitions))
+    duplicates = sorted(n for n, count in definitions.items() if count > 1)
+    unreferenced = sorted(set(definitions) - set(references))
+    unlabelled = sum(note["number"] is None for note in notes)
+    targets = {note["target"] for note in notes if note["target"]}
+    missing_targets = sorted({ref["target"] for ref in parser.references if ref["target"] and ref["target"] not in targets})
+    for label, items in (("missing definitions", missing), ("duplicate definitions", duplicates),
+                         ("unreferenced definitions", unreferenced), ("missing popup targets", missing_targets)):
+        if items:
+            warnings.append(f"footnotes: {label}: {', '.join(items)}")
+    if unlabelled:
+        warnings.append(f"footnotes: {unlabelled} unlabelled definitions retained without invented numbers")
+    if mismatched:
+        warnings.append("footnotes: conflicting marker and definition identifiers; inspect note_reconciliation")
+    reconciliation = {"reference_counts": dict(references), "definition_counts": dict(definitions),
+                      "missing": missing, "duplicates": duplicates, "unreferenced": unreferenced,
+                      "unlabelled": unlabelled, "mismatched": mismatched, "missing_targets": missing_targets}
+    return [f"[note: {n['number'] if n['number'] is not None else 'unlabelled'}] {n['text']}" for n in notes], reconciliation, warnings
 
 
 def extract_elitigation(html):
@@ -229,10 +292,13 @@ def extract_elitigation(html):
         if (baseline is not None and sizes[-1] > max(2000, baseline * 10)) or sizes[-1] > 50000:
             report["warnings"].append(f"unusually large final paragraph [{numbers[-1]}]; "
                                       "inspect source boundaries (size is a diagnostic, not a boundary rule)")
+    notes, reconciliation, note_warnings = _judgment_notes(parser)
+    report["warnings"].extend(note_warnings)
+    report["note_reconciliation"] = reconciliation
     return {"header": clean("".join(parser.header)),
             "opinions": [{"author": o["author"], "first": o["numbers"][0], "last": o["numbers"][-1],
                           "paragraphs": len(o["numbers"]), "text": "\n".join(o["lines"]) + "\n"} for o in opinions],
-            "notes": [f"[note: {i}] {n}" for i, n in enumerate(parser.notes, 1)],
+            "notes": notes,
             "trailing": trailing,
             "report": dict(report, extracted_paragraphs=extracted)}
 

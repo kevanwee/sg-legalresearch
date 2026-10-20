@@ -47,6 +47,68 @@ ELIT = ('<html><body><div class="HN-CaseName text-center font-weight-bold ">Synt
 
 
 class ElitigationTests(unittest.TestCase):
+    def test_note_source_numbers_survive_gaps_and_out_of_order_definitions(self):
+        page = judg("Judg-1", "1&emsp;Synthetic reasoning." + note(7, "Seven.") + note(2, "Two."))
+        result = r.converters.extract_elitigation(page)
+        self.assertIn("[note: 7][note: 2]", result["opinions"][0]["text"])
+        self.assertEqual(result["notes"], ["[note: 7] Seven.", "[note: 2] Two."])
+        self.assertEqual(result["report"]["warnings"], [])
+
+    def test_split_marker_text_is_one_reference_and_plain_superscript_is_not_a_note(self):
+        marker = note(12, "Twelve.").replace(">12</button>", "><span>1</span><span>2</span></button>")
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Value x<sup>2</sup>." + marker))
+        self.assertIn("Value x2.[note: 12]", result["opinions"][0]["text"])
+        self.assertEqual(result["notes"], ["[note: 12] Twelve."])
+        self.assertEqual(result["report"]["note_reconciliation"]["reference_counts"], {"12": 1})
+
+    def test_missing_duplicate_and_unreferenced_notes_are_reported(self):
+        popup = note(9, "Nine.").split("</sup>", 1)[1]
+        duplicate = note(7, "Conflicting seven.").split("</sup>", 1)[1]
+        page = judg("Judg-1", "1&emsp;Body." + note(7, "Seven.") + "<sup><button>8</button></sup>") + popup + duplicate
+        result = r.converters.extract_elitigation(page)
+        reconciliation = result["report"]["note_reconciliation"]
+        self.assertEqual(reconciliation["missing"], ["8"])
+        self.assertEqual(reconciliation["duplicates"], ["7"])
+        self.assertEqual(reconciliation["unreferenced"], ["9"])
+        self.assertEqual(len(result["notes"]), 3)  # Neither duplicate is overwritten.
+        self.assertEqual(len(result["report"]["warnings"]), 3)
+
+    def test_repeated_references_to_one_definition_are_not_duplicate_definitions(self):
+        page = judg("Judg-1", "1&emsp;Body." + note(7, "Seven.") + "<sup><button>7</button></sup>")
+        result = r.converters.extract_elitigation(page)
+        self.assertEqual(result["report"]["note_reconciliation"]["reference_counts"], {"7": 2})
+        self.assertEqual(result["report"]["warnings"], [])
+
+    def test_popup_target_resolves_an_untitled_note_and_reports_conflicts(self):
+        labelled = note(7, "Seven.").replace("<button ", "<button data-target='#note-seven' ", 1).replace(
+            "<div class='modal fade'", "<div id='note-seven' class='modal fade'", 1)
+        page = judg("Judg-1", "1&emsp;Body." + labelled.replace("Foot Note 7", "Reference"))
+        result = r.converters.extract_elitigation(page)
+        self.assertEqual(result["notes"], ["[note: 7] Seven."])
+        self.assertEqual(result["report"]["warnings"], [])
+        conflict = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Body." + labelled.replace("Foot Note 7", "Foot Note 9")))
+        self.assertTrue(conflict["report"]["note_reconciliation"]["mismatched"])
+        self.assertTrue(any("conflicting" in w for w in conflict["report"]["warnings"]))
+
+    def test_unlabelled_definition_is_retained_without_an_invented_number(self):
+        popup = note(7, "Unlabelled synthetic text.").split("</sup>", 1)[1].replace("Foot Note 7", "Reference")
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Body.") + popup)
+        self.assertEqual(result["notes"], ["[note: unlabelled] Unlabelled synthetic text."])
+        self.assertEqual(result["report"]["note_reconciliation"]["unlabelled"], 1)
+
+    def test_popup_controls_are_not_note_text(self):
+        popup = ("<sup><button>7</button></sup><div class='modal fade'><div>Foot Note 7</div>"
+                 "<div class='FootnoteRef'>Seven.<div>Continued.</div></div>"
+                 "<div>Close control must stay out.</div></div>")
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Body." + popup))
+        self.assertEqual(result["notes"], ["[note: 7] Seven. Continued."])
+
+    def test_multiple_note_body_blocks_are_preserved(self):
+        popup = ("<sup><button>7</button></sup><div class='modal fade'><div>Foot Note 7</div>"
+                 "<div class='FootnoteRef'>First part.</div><div class='FootnoteRef'>Second part.</div></div>")
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Body." + popup))
+        self.assertEqual(result["notes"], ["[note: 7] First part. Second part."])
+
     def test_header_preserves_words_split_across_inline_spans(self):
         page = ('<div class="HN-CaseName">Synthetic Alpha v Synthetic Be<span>ta</span>'
                 ' &amp; Co<span>mp</span>any</div>' + judg("Judg-1", "1&emsp;Synthetic body."))
