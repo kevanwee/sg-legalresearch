@@ -110,7 +110,9 @@ tool-enforced instruction to stop the turn ends the attempt immediately; do not
 switch runtimes to evade it. A site block or challenge ends requests to that site,
 including through another browser, session or network route. If no permitted browser
 route works, use supplied/saved material or the permitted scripted-request route
-below, and disclose what remains unverified. Do not install software or extensions,
+below. For legislation, also try [independent statutory sources](statute-source-fallbacks.md)
+through available authorised tools; SSO unavailability does not end statutory research.
+Disclose what remains unverified. Do not install software or extensions,
 change security settings, or request credentials merely to complete discovery.
 
 ## Access and retrieval conduct
@@ -121,6 +123,11 @@ Checked on **20 October 2026** against the [SSO Terms of Use](https://sso.agc.go
 Recheck them when they matter. Use these retrieval routes, in order, falling back only
 when the one above is unavailable or fails. Complete [browser discovery](#browser-discovery)
 before concluding that route 1 is unavailable:
+
+These are access routes to a publisher, not a requirement to depend on SSO. If SSO
+is unavailable or refuses access, use the [statutory-source fallback workflow](statute-source-fallbacks.md)
+to retrieve from an independent publisher, with that publisher's own terms and a
+separate version check. Do not retry SSO through an alternative client after a block.
 
 1. **An agent-operated real browser.** Use a browser the user has made available, such
    as Claude in Chrome, the desktop app's browser, or a locally installed browser under
