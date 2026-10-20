@@ -404,6 +404,17 @@ def extract_elitigation_page(html_file, out, notes_out=None):
                     "each opinion file and this transformation; separate opinions need separate source IDs."}
 
 
+def extract_sso_page(html_file, out):
+    """Convert a saved SSO provision view to text and report its version evidence."""
+    result = converters.extract_sso(Path(html_file).read_text(encoding="utf-8-sig"))
+    write_new_text(out, result["text"])
+    return {"file": str(out), "title": result["title"], "status": result["status"],
+            "provisions": result["provisions"], "act_amendments": result["act_amendments"],
+            "warnings": result["warnings"], "transformation": converters.SSO_TRANSFORMATION,
+            "next": "Use the status line as the snapshot --version and check act_amendments (Act-wide, not "
+                    "provision-specific) in version_review; then snapshot the saved page with --text set to this file."}
+
+
 def attach_draft(root, file):
     root = Path(root)
     data = load_run(root)
@@ -873,6 +884,9 @@ def main(argv=None):
     elit.add_argument("html", type=Path)
     elit.add_argument("--out", type=Path, required=True)
     elit.add_argument("--notes", type=Path)
+    sso = sub.add_parser("extract-sso", help="convert a saved SSO provision view to text and report its version status")
+    sso.add_argument("html", type=Path)
+    sso.add_argument("--out", type=Path, required=True)
     docx = sub.add_parser("extract-docx", help="snapshot a Word draft and inventory text")
     docx.add_argument("run", type=Path)
     docx.add_argument("file", type=Path)
@@ -891,6 +905,8 @@ def main(argv=None):
                               args.citation, args.version, args.text, args.transformation)
         elif args.command == "extract-elitigation":
             output = extract_elitigation_page(args.html, args.out, args.notes)
+        elif args.command == "extract-sso":
+            output = extract_sso_page(args.html, args.out)
         elif args.command == "extract-docx":
             output = attach_draft(args.run, args.file)
         elif args.command == "index-paragraphs":

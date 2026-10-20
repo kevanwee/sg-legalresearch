@@ -106,7 +106,9 @@ Within it, fetch only the provision views needed, once, at least six seconds apa
 For a past version, add `ValidDate=YYYYMMDD` to the provision view, e.g.
 `/Act/CA2021?ProvIds=pr146-&ValidDate=20220101`. Record the page's status line (such as
 "Not current version (effective from 31 Dec 2021 to 31 Mar 2022)" or "Current version
-as at …") as the source version, and check the version list for amending Acts.
+as at …") as the source version, and check the version list for amending Acts. The
+bundled `extract-sso` command reports both from a saved page; see
+[statutory evidence](statutory-evidence.md).
 
 **eLitigation.** Its terms limit use to authorised purposes and bar reproduction
 without approval; they give no permission for automated access, and there is no
