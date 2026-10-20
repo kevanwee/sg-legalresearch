@@ -52,6 +52,11 @@ amendment list ("Amended by Act … of …", Act-wide rather than provision-spec
 the status line as the snapshot `--version`, review the amendment list in
 `version_review`, and pass the reported transformation to `snapshot`. It works on raw
 and browser-rendered pages, never fetches, and never overwrites a file.
+The content container is parsed by its `id`, independently of attribute order or
+quoting. Extraction ends at its matching closing tag, even with no page footer;
+following sibling text is excluded. Duplicate, unbalanced or unclosed containers
+are refused. If a raw fragment is incomplete or relies on omitted closing tags,
+save a complete browser-rendered page rather than relaxing the boundary check.
 
 The helper uses a **reviewed provision map**, not a universal statutory-layout parser.
 Obtain the hierarchy and complete boundaries from the actual source or a documented

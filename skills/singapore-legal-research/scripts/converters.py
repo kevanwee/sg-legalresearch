@@ -234,15 +234,55 @@ def _flat(fragment):
     return html_module.unescape(re.sub(r"<[^>]+>", " ", fragment))
 
 
+class _SsoContent(HTMLParser):
+    """Capture one complete legisContent subtree, not the page tail after it."""
+
+    VOID = frozenset(("area", "base", "br", "col", "embed", "hr", "img", "input",
+                      "link", "meta", "param", "source", "track", "wbr"))
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.found, self.stack, self.parts = False, [], []
+
+    def handle_starttag(self, tag, attrs):
+        if dict(attrs).get("id") == "legisContent":
+            if self.found:
+                raise ValueError("multiple SSO provision containers found; save one unambiguous provision view")
+            if tag in self.VOID:
+                raise ValueError("SSO provision container cannot be a void element")
+            self.found = True
+            self.stack.append(tag)
+            return
+        if self.stack:
+            self.parts.append("\n")
+            if tag not in self.VOID:
+                self.stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if self.stack and tag not in self.VOID:
+            if tag != self.stack[-1]:
+                raise ValueError("unbalanced SSO provision container; save a complete browser-rendered page")
+            self.stack.pop()
+            self.parts.append("\n")
+
+    def handle_data(self, data):
+        if self.stack and not any(tag in ("script", "style") for tag in self.stack):
+            self.parts.append(data)
+
+    def content(self):
+        if not self.found:
+            raise ValueError("no SSO provision content found (id=legisContent); save the provision view of the page")
+        if self.stack:
+            raise ValueError("unclosed SSO provision container; save the complete page instead of a truncated fragment")
+        return "".join(self.parts)
+
+
 def extract_sso(page):
     """Return SSO provision text plus the page's title, version status and Act amendment list."""
-    start = page.find('<div id="legisContent">')
-    if start < 0:
-        raise ValueError("no SSO provision content found (id=legisContent); save the provision view of the page")
-    body = page[start:]
-    footer = re.search(r'<footer|<div[^>]*class="[^"]*footer', body)
-    body = body[:footer.start()] if footer else body
-    text = html_module.unescape(re.sub(r"<[^>]+>", "\n", body))
+    parser = _SsoContent()
+    parser.feed(page)
+    parser.close()
+    text = parser.content()
     lines = [" ".join(line.split()) for line in text.splitlines()]
     text = "\n".join(line for line in lines if line)
     text = re.sub(r"\(\n(\w+)\n\)", r"(\1)", text)          # "(\na\n)" -> "(a)"
