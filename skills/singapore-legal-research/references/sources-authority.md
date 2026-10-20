@@ -67,13 +67,60 @@ Search engines and third-party legal search services are discovery aids. Use exa
 citations, party names, and legal synonyms; refine to official domains. A plausible
 eLitigation URL is only a candidate until opened and matched to the decision.
 
+## Browser discovery
+
+Establish live access before starting live legal research. Tool availability varies
+by host; discover the capabilities actually exposed in the current session rather
+than assuming that a named browser integration is installed.
+
+1. **Discover and load.** Inspect the exposed tool/skill catalog, including deferred
+   tools discoverable through the host's supported search. Load the instructions for
+   the relevant browser integration before using it. Prefer a purpose-built browser
+   tool and honour a browser or tab the user specified.
+2. **Inspect the route.** Use its documented inventory, attachment or new-tab entry
+   point. An empty tab list, empty browser inventory or failed attachment describes
+   that route only. Where supported, open a new tab or launch an installed browser
+   through the documented entry point; an existing attached tab is not a prerequisite.
+3. **Check the alternatives.** If that route is unavailable or technically fails,
+   inspect other exposed browser integrations. On Windows, if a computer-use skill
+   is available, read it and its required runtime guidance, initialise its supported
+   runtime, list installed apps/windows, and select a returned browser window. If
+   necessary and supported, launch an installed browser and inspect the new inventory.
+   Do not infer that Windows computer use is unavailable from a separate browser
+   tool's empty inventory. Use only documented APIs; this skill neither bundles nor
+   requires a particular browser package, extension or runtime.
+4. **Confirm usable access.** Open a needed official source at reading pace and
+   inspect its URL, title and readable source content. A listed browser, successful
+   runtime import, search snippet or blank tab does not prove live retrieval. For
+   SSO, confirm the instrument, requested provision and displayed version/status;
+   save the page privately through the supported browser route before converting it.
+   A readable page without a supported save/export route may support transcript-based
+   research, but does not establish that the saved-page converter has been live-tested.
+5. **Record the outcome.** For saved runs, record the tool/route, retrieval time,
+   URL, result and evidence file in private run notes; put the selected access route
+   and material limits in the source's `review_note`. Distinguish `not exposed`,
+   `empty inventory`, `initialisation/attachment failed`, `tool-enforced stop`,
+   `site refused access` and `live retrieval confirmed`. Declare browser access
+   unavailable only after checking the exposed alternatives, or explain the explicit
+   stop that prevented further discovery. Never label offline fixtures as live tests.
+
+Discovery fallbacks address missing capabilities and technical failures; they are
+not a way around restrictions. Follow each tool's documented recovery limits. A
+tool-enforced instruction to stop the turn ends the attempt immediately; do not
+switch runtimes to evade it. A site block or challenge ends requests to that site,
+including through another browser, session or network route. If no permitted browser
+route works, use supplied/saved material or the permitted scripted-request route
+below, and disclose what remains unverified. Do not install software or extensions,
+change security settings, or request credentials merely to complete discovery.
+
 ## Access and retrieval conduct
 
 Checked on **20 October 2026** against the [SSO Terms of Use](https://sso.agc.gov.sg/Terms-of-Use),
 [SSO robots.txt](https://sso.agc.gov.sg/robots.txt) and the
 [eLitigation Terms of Use](https://www.elitigation.sg/_layouts/IELS/Home/eLitigation_Terms_of_Use.htm).
 Recheck them when they matter. Use these retrieval routes, in order, falling back only
-when the one above is unavailable or fails:
+when the one above is unavailable or fails. Complete [browser discovery](#browser-discovery)
+before concluding that route 1 is unavailable:
 
 1. **An agent-operated real browser.** Use a browser the user has made available, such
    as Claude in Chrome, the desktop app's browser, or a locally installed browser under
