@@ -95,23 +95,45 @@ def load_run(root):
     return data
 
 
-def parse_pinpoint(value):
-    """Parse an explicit paragraph pinpoint, never a year/report citation."""
+PIN_UNIT = (r"\[([1-9]\d*)((?:\([A-Za-z0-9]+\))*)\]"
+            r"(?:\s*[-–—]\s*\[([1-9]\d*)((?:\([A-Za-z0-9]+\))*)\])?")
+
+
+def pinpoint_units(value):
+    """Parse explicit paragraph pinpoints, keeping any sub-paragraph labels such as [185(b)]."""
     if not nonempty(value):
         raise ValueError("a paragraph pinpoint is required")
     value = re.sub(r"^at\s+", "", value.strip())
     value = re.sub(r"\s+and\s+", ", ", value)
-    unit = r"\[([1-9]\d*)\](?:\s*[-–—]\s*\[([1-9]\d*)\])?"
-    if not re.fullmatch(unit + r"(?:\s*,\s*" + unit + r")*", value):
-        raise ValueError("use paragraph pinpoints such as [35], [35]–[37], or [35], [39]")
-    ranges = [(int(m[1]), int(m[2] or m[1])) for m in re.finditer(unit, value)]
-    if any(end < start for start, end in ranges):
-        raise ValueError("paragraph ranges must run forwards")
-    return ranges
+    if not re.fullmatch(PIN_UNIT + r"(?:\s*,\s*" + PIN_UNIT + r")*", value):
+        raise ValueError("use paragraph pinpoints such as [35], [35]–[37], [35], [39] or [35(b)]")
+    units = []
+    for m in re.finditer(PIN_UNIT, value):
+        first, last = int(m[1]), int(m[3] or m[1])
+        first_sub, last_sub = m[2], (m[4] if m[3] else m[2])
+        if last < first:
+            raise ValueError("paragraph ranges must run forwards")
+        units.append((first, first_sub, last, last_sub))
+    return units
+
+
+def parse_pinpoint(value):
+    """Paragraph ranges cited; a sub-paragraph resolves to its whole paragraph."""
+    return [(first, last) for first, _, last, _ in pinpoint_units(value)]
 
 
 def canonical_pinpoint(value):
-    return ", ".join(f"[{a}]" if a == b else f"[{a}]–[{b}]" for a, b in parse_pinpoint(value))
+    def unit(first, first_sub, last, last_sub):
+        start = f"[{first}{first_sub}]"
+        return start if (first, first_sub) == (last, last_sub) else f"{start}–[{last}{last_sub}]"
+    return ", ".join(unit(*u) for u in pinpoint_units(value))
+
+
+def has_subparagraph(value):
+    try:
+        return any(first_sub or last_sub for _, first_sub, _, last_sub in pinpoint_units(value))
+    except ValueError:
+        return False
 
 
 def build_paragraphs(text, style):
@@ -495,6 +517,9 @@ def check_run(root):
                         expected = select_paragraphs(paragraph_rows[sid], ref.get("pinpoint"))
                         if ref.get("passages") != expected:
                             raise ValueError("case evidence must retain every full cited paragraph with its source offsets")
+                        if has_subparagraph(ref.get("pinpoint")):
+                            limits.append(f"{key}: {ref['pinpoint']} checked against the full paragraph; "
+                                          "the sub-paragraph's own boundaries were reviewed manually")
                     elif ref.get("locator_type") == "page":
                         if sources[sid].get("paragraph_index") is not None or not nonempty(sources[sid].get("paragraphs_unavailable_reason")):
                             raise ValueError("page fallback needs an unnumbered source and paragraphs_unavailable_reason")
@@ -567,7 +592,11 @@ def check_run(root):
                         return False
                     if ref.get("locator_type", "paragraph") == "paragraph" and sid in paragraph_rows:
                         try:
-                            return select_paragraphs(paragraph_rows[sid], ref["pinpoint"]) == select_paragraphs(paragraph_rows[sid], pin)
+                            # Same paragraphs and same sub-paragraph labels: [185(c)] is not [185(b)].
+                            labels = lambda p: [(s1, s2) for _, s1, _, s2 in pinpoint_units(p)]
+                            return (select_paragraphs(paragraph_rows[sid], ref["pinpoint"])
+                                    == select_paragraphs(paragraph_rows[sid], pin)
+                                    and labels(ref["pinpoint"]) == labels(pin))
                         except ValueError:
                             return False
                     if sources[sid].get("kind") == "legislation":
