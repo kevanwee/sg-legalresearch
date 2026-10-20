@@ -82,8 +82,10 @@ when the one above is unavailable or fails:
      automated, change its fingerprint or user-agent, or solve CAPTCHAs.
    - Open only the pages the question needs, at human pace (about ten seconds or more
      between page views), and save each page's HTML (a screenshot helps review).
-   - A page that loads normally is ordinary browsing. If a CAPTCHA, block page or error
-     appears, stop and fall back; do not retry.
+   - A page that loads normally is ordinary browsing, including any background check the
+     site runs on every visitor's browser while the page loads. A CAPTCHA or other check
+     that asks for a response is different: if one, a block page or an error appears,
+     stop and fall back; do not retry or answer it.
    - Tested on 20 October 2026: a real Chrome, openly marked as automated, loaded three
      SSO provision views twelve seconds apart without challenge, including a historical
      version.
