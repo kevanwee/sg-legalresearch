@@ -17,9 +17,15 @@ use a short extract or paraphrase with a precise citation. Capturing a paragraph
 not require republishing it in full in the final answer or in this public repository.
 
 Use the verified case name and report/neutral citation, followed by the smallest
-sufficient locator: `at [35]`, `at [35]–[37]`, or `at [35], [39]`. These numbers
-illustrate the format, not an authority. Do not cite a range unless every paragraph
-within it was retrieved and read. A page number, PDF viewer page, footnote number and
+sufficient locator: `at [35]`, `at [35]–[37]`, `at [35], [39]`, or a sub-paragraph
+such as `at [35(b)]`. These numbers illustrate the format, not an authority. Do not cite
+a range unless every paragraph within it was retrieved and read.
+
+A sub-paragraph pinpoint keeps its literal form (e.g. `[35(b)]`) but captures and checks
+the whole numbered paragraph, so the lead-in and sibling sub-paragraphs stay in view.
+`check` records a limit for each one: the tool verifies the paragraph, and the reviewer
+confirms that the words sit in the stated sub-paragraph. In a cite-check, `[35(c)]` is a
+different locator from `[35(b)]`, so a wrong sub-paragraph is a wrong pinpoint. A page number, PDF viewer page, footnote number and
 judgment paragraph number are not interchangeable. The source version must match
 the report or judgment actually cited.
 
@@ -85,7 +91,8 @@ Preserve original HTML paragraph boundaries/identifiers when available, and comp
 PDF/text conversions with the source. Source structure is stronger evidence than
 guessing boundaries from flattened text; keep the boundary review requirement.
 
-The current helper supports positive integer paragraph numbers only. Unsupported
+The current helper supports positive integer paragraph numbers, optionally with
+sub-paragraph labels in pinpoints, but not lettered paragraph numbers such as [35A]. Unsupported
 layouts or labels require manual verification and an explicit unresolved limitation
 in the saved run, rather than guessed or silently renumbered passages. The helper
 does not fetch a URL or manufacture paragraph text from a search result.

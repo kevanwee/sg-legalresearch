@@ -362,6 +362,51 @@ class EvidenceTests(unittest.TestCase):
         self.data["claims"][0].update(location="draft/p:1", citation_check={"source_id": "S1",
             "citation": citation, "pinpoint": pin, "result": status, "reason": "Synthetic citation review."})
 
+    def test_subparagraph_pinpoints_resolve_to_the_whole_paragraph(self):
+        for pin, canonical in (("at [185(b)]", "[185(b)]"), ("[185(a)]–[185(c)]", "[185(a)]–[185(c)]"),
+                               ("[12(b)(ii)]", "[12(b)(ii)]"), ("[3(a)] and [5]", "[3(a)], [5]")):
+            with self.subTest(pin=pin):
+                self.assertEqual(r.canonical_pinpoint(pin), canonical)
+        self.assertEqual(r.parse_pinpoint("[185(b)]"), [(185, 185)])
+        for pin in ("[185(b]", "[2(a)]-[1(b)]", "[185()]", "[185b]", "[185(c)]–[185(a)]"):
+            with self.subTest(pin=pin), self.assertRaises(ValueError):
+                r.parse_pinpoint(pin)
+
+    def subparagraph_evidence(self, pin):
+        ref = copy.deepcopy(self.data["claims"][0]["evidence"][0])
+        ref.update(pinpoint=pin, passages=r.select_paragraphs(
+            self.data["sources"][0]["paragraph_index"]["paragraphs"], pin), support_note="Synthetic sub-paragraph.")
+        return ref
+
+    def test_subparagraph_citation_can_be_verified_in_cite_check(self):
+        self.as_cited(pin="[1(b)]")
+        self.data["claims"][0]["evidence"] = [self.subparagraph_evidence("[1(b)]")]
+        report = self.report()
+        self.assertFalse(report["errors"])
+        self.assertTrue(any("[1(b)] checked against the full paragraph" in l for l in report["limits"]))
+
+    def test_wrong_subparagraph_is_a_separate_locator(self):
+        self.as_cited(pin="[1(b)]")
+        self.data["claims"][0]["evidence"] = [self.subparagraph_evidence("[1(a)]")]
+        self.assertTrue(any("checked separately from any correction" in e for e in self.report()["errors"]))
+        self.as_cited(pin="[1(b)]", status="wrong-pinpoint")
+        self.data["claims"][0].update(assessment="qualified", evidence=[self.subparagraph_evidence("[1(b)]"),
+                                                                        self.subparagraph_evidence("[1(a)]")])
+        self.assertFalse(self.report()["errors"])
+
+    def test_equivalent_range_forms_still_match_without_subparagraphs(self):
+        self.as_cited(pin="[1]–[2]")
+        self.data["claims"][0]["evidence"] = [self.subparagraph_evidence("[1], [2]")]
+        self.assertFalse(self.report()["errors"])
+
+    def test_capture_keeps_the_literal_subparagraph_pinpoint(self):
+        self.case_source()
+        self.save()
+        packet = r.capture_passages(self.run, "S1", "at [1(b)]")
+        self.assertEqual(packet["evidence"]["pinpoint"], "[1(b)]")
+        self.assertTrue(packet["citation"].endswith("at [1(b)]"))
+        self.assertEqual(packet["evidence"]["passages"][0]["text"], "A synthetic proposition.")
+
     def test_cite_check_requires_original_citation_record(self):
         self.as_cited()
         self.assertFalse(self.report()["errors"])
