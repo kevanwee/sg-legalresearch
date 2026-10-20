@@ -16,6 +16,39 @@ spec.loader.exec_module(installer)
 
 
 class PackagingTests(unittest.TestCase):
+    def test_installed_conversion_to_quote_preserves_lists_and_refuses_detached_labels(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            destination = installer.install("codex", root / "skills")
+            script, run = destination / "scripts/research.py", root / "run"
+
+            def cli(*args, expected=0):
+                result = subprocess.run([sys.executable, "-I", str(script), *map(str, args)],
+                                        capture_output=True, cwd=root)
+                self.assertEqual(result.returncode, expected, result.stderr.decode("utf-8", "replace"))
+                return json.loads(result.stdout.decode("utf-8")) if expected == 0 else result
+
+            page, body = root / "case.html", root / "case.txt"
+            page.write_text('<div class="Judg-1">1&emsp;Synthetic first paragraph.</div>'
+                            '<div class="Judg-1">2&emsp;Synthetic scope:</div>'
+                            '<div class="Judg-List-1">(a) Synthetic list rule.</div>'
+                            '<div class="Judg-List-2">(i) Synthetic nested rule.</div>', encoding="utf-8")
+            converted = cli("extract-elitigation", page, "--out", body)
+            cli("init", run, "--question", "Synthetic installed conversion", "--research-date", "2026-10-20", "--law-as-at", "2026-10-20")
+            cli("snapshot", run, page, "--id", "S1", "--kind", "case", "--title", "Synthetic case",
+                "--url", "https://example.invalid/case", "--citation", "SYNTHETIC", "--version", "test",
+                "--text", body, "--transformation", converted["transformation"])
+            cli("index-paragraphs", run, "--source", "S1", "--style", "bracketed", "--confirm-boundaries",
+                "--review-note", "Compared complete synthetic paragraphs.")
+            cli("quote", run, "--source", "S1", "--pinpoint", "[2]", "--text", "Synthetic nested rule.")
+            cli("quote", run, "--source", "S1", "--pinpoint", "[1]", "--text", "Synthetic nested rule.", expected=2)
+            bad_page, bad_body = root / "bad.html", root / "bad.txt"
+            bad_page.write_text('<div class="Judg-1">1&emsp;Synthetic first paragraph.</div>'
+                                '<div class="Judg-1">2</div><div class="Judg-1">Synthetic second paragraph.</div>', encoding="utf-8")
+            error = cli("extract-elitigation", bad_page, "--out", bad_body, expected=2)
+            self.assertIn("label on its own line", error.stderr.decode("utf-8"))
+            self.assertFalse(bad_body.exists())
+
     def test_cli_writes_utf8_json_for_text_outside_the_console_code_page(self):
         with tempfile.TemporaryDirectory() as folder:
             destination = installer.install("codex", Path(folder) / "skills")
