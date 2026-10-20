@@ -72,21 +72,39 @@ eLitigation URL is only a candidate until opened and matched to the decision.
 Checked on **20 October 2026** against the [SSO Terms of Use](https://sso.agc.gov.sg/Terms-of-Use),
 [SSO robots.txt](https://sso.agc.gov.sg/robots.txt) and the
 [eLitigation Terms of Use](https://www.elitigation.sg/_layouts/IELS/Home/eLitigation_Terms_of_Use.htm).
-Recheck them when they matter. Prefer these retrieval routes, in order:
+Recheck them when they matter. Use these retrieval routes, in order, falling back only
+when the one above is unavailable or fails:
 
-1. **Material the user supplies or saves in a normal browser.** For legislation, ask for
+1. **An agent-operated real browser.** Use a browser the user has made available, such
+   as Claude in Chrome, the desktop app's browser, or a locally installed browser under
+   automation, to open and save the page as a reader would:
+   - Use the real browser as it is. Do not add stealth plugins, hide that it is
+     automated, change its fingerprint or user-agent, or solve CAPTCHAs.
+   - Open only the pages the question needs, at human pace (about ten seconds or more
+     between page views), and save each page's HTML (a screenshot helps review).
+   - A page that loads normally is ordinary browsing. If a CAPTCHA, block page or error
+     appears, stop and fall back; do not retry.
+   - Tested on 20 October 2026: a real Chrome, openly marked as automated, loaded three
+     SSO provision views twelve seconds apart without challenge, including a historical
+     version.
+2. **Material the user supplies or saves in a normal browser.** For legislation, ask for
    the SSO provision view (e.g. `/Act/CA2021?ProvIds=pr146-`) saved as HTML or printed
-   to PDF. This is ordinary site use and the strongest record of the version seen.
-2. **A browser the user has made available to the agent**, used at human pace for the
-   few pages the question needs, with the user aware of what is opened.
+   to PDF. List the exact links so the user can save them in one pass.
 3. **Scripted requests**, only within the site's terms as set out below.
 
 **SSO.** Clause 13(d) allows automated extraction only from **3 a.m. to 7 a.m. Singapore
 time**, and not in an abusive, intrusive or deceptive manner, or in a way that disrupts
 SSO or breaches or circumvents its security measures. Clause 12 lets AGC block an
 address without notice. `robots.txt` sets `crawl-delay: 6` and disallows `/search`.
-Outside that window, do not script SSO retrieval; use route 1 or 2. Within it, fetch
-only the provision views needed, once, at least six seconds apart.
+Route 1 treats a few page views in a real browser at reading pace as reading the site
+for research, not extracting legislation for a platform; if the user or AGC takes a
+different view, use route 2. Do not script SSO requests outside the 3–7 a.m. window.
+Within it, fetch only the provision views needed, once, at least six seconds apart.
+
+For a past version, add `ValidDate=YYYYMMDD` to the provision view, e.g.
+`/Act/CA2021?ProvIds=pr146-&ValidDate=20220101`. Record the page's status line (such as
+"Not current version (effective from 31 Dec 2021 to 31 Mar 2022)" or "Current version
+as at …") as the source version, and check the version list for amending Acts.
 
 **eLitigation.** Its terms limit use to authorised purposes and bar reproduction
 without approval; they give no permission for automated access, and there is no
@@ -100,7 +118,7 @@ For every site:
   paywall, and never rotate addresses or proxies to avoid one.
 - On a block or challenge (for example an empty HTTP 202, 403, 429 or CAPTCHA page),
   stop requesting from that site. Do not retry in a loop. Record the access gap and
-  ask the user to supply the page from a normal browser session.
+  move to the next route.
 - Reuse copies already saved in the run rather than fetching the same page again.
 - Record the access route in the source's `review_note`: user-saved browser copy,
   agent-operated browser, or scripted request with its time and user-agent.

@@ -51,8 +51,10 @@ draft with planted errors. All planted errors were caught. The trial found and f
   next section's heading ended with "etc."; such headings are now valid boundaries.
 - **Retrieval conduct.** Scripted SSO requests during the trial triggered a firewall
   challenge. The skill now follows SSO's terms (automated extraction only 3–7 a.m.
-  Singapore time, honest identification, no circumvention), prefers pages the user
-  saves from a normal browser, and stops on a block.
+  Singapore time, honest identification, no circumvention). It retrieves first through
+  an agent-operated real browser at reading pace with no stealth, which loaded SSO
+  normally in testing, including historical versions; then pages the user saves; then
+  scripted requests within the terms. It stops on a block.
 
 ## Boundary hardening before this release
 

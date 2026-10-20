@@ -46,8 +46,9 @@ For prose-only proofreading, use the proofread mode without performing new resea
    locate leads. They do not verify what a judgment or provision says. If browsing is
    unavailable, work from supplied material and label the temporal and coverage limits.
    Retrieve within each site's terms under [access and retrieval conduct](references/sources-authority.md#access-and-retrieval-conduct):
-   prefer pages the user saves from a normal browser, identify scripted requests honestly,
-   and never bypass a block or challenge. On a block, stop and ask for the page.
+   first an agent-operated real browser at reading pace with no stealth, then pages the
+   user saves, then scripted requests only within the site's terms. Never bypass a block
+   or challenge; on a block, stop and fall back to the next route.
 3. **Select the right version.** Confirm the provision effective on the relevant date,
    definitions, exceptions, schedules, commencement, amendments, and transitional rules.
    For cases, record court, decision date, procedural posture, and the actual version read.
