@@ -189,7 +189,8 @@ def build_provisions(text, manifest):
         if at_line_start and not boundary:
             # The next unit's own heading line, e.g. a marginal note, before its number.
             heading_line = re.match(r"([A-Z][^\n]{0,150})\n[ \t]*(?:" + root_label + "|" + heading + ")", rest)
-            boundary = heading_line and not re.search(r"[.,;:—–-]\s*$", heading_line[1])
+            # SSO headings may end "etc."; other end punctuation suggests cut-off prose.
+            boundary = heading_line and not re.search(r"(?<!\betc)[.,;:—–-]\s*$", heading_line[1])
         child = re.match(r"\(([A-Za-z0-9]+)\)", rest) if at_line_start else None
         if child and row["parent"]:
             # A child label ends this unit only as its own or an ancestor's next sibling,

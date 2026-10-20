@@ -67,6 +67,46 @@ Search engines and third-party legal search services are discovery aids. Use exa
 citations, party names, and legal synonyms; refine to official domains. A plausible
 eLitigation URL is only a candidate until opened and matched to the decision.
 
+## Access and retrieval conduct
+
+Checked on **20 October 2026** against the [SSO Terms of Use](https://sso.agc.gov.sg/Terms-of-Use),
+[SSO robots.txt](https://sso.agc.gov.sg/robots.txt) and the
+[eLitigation Terms of Use](https://www.elitigation.sg/_layouts/IELS/Home/eLitigation_Terms_of_Use.htm).
+Recheck them when they matter. Prefer these retrieval routes, in order:
+
+1. **Material the user supplies or saves in a normal browser.** For legislation, ask for
+   the SSO provision view (e.g. `/Act/CA2021?ProvIds=pr146-`) saved as HTML or printed
+   to PDF. This is ordinary site use and the strongest record of the version seen.
+2. **A browser the user has made available to the agent**, used at human pace for the
+   few pages the question needs, with the user aware of what is opened.
+3. **Scripted requests**, only within the site's terms as set out below.
+
+**SSO.** Clause 13(d) allows automated extraction only from **3 a.m. to 7 a.m. Singapore
+time**, and not in an abusive, intrusive or deceptive manner, or in a way that disrupts
+SSO or breaches or circumvents its security measures. Clause 12 lets AGC block an
+address without notice. `robots.txt` sets `crawl-delay: 6` and disallows `/search`.
+Outside that window, do not script SSO retrieval; use route 1 or 2. Within it, fetch
+only the provision views needed, once, at least six seconds apart.
+
+**eLitigation.** Its terms limit use to authorised purposes and bar reproduction
+without approval; they give no permission for automated access, and there is no
+`robots.txt`. Script retrieval conservatively, if at all: a handful of judgments, spaced
+requests, private copies only.
+
+For every site:
+
+- Identify the client honestly. Never spoof a browser user-agent or fingerprint.
+- Never solve, bypass or evade a challenge, CAPTCHA, firewall, rate limit, login or
+  paywall, and never rotate addresses or proxies to avoid one.
+- On a block or challenge (for example an empty HTTP 202, 403, 429 or CAPTCHA page),
+  stop requesting from that site. Do not retry in a loop. Record the access gap and
+  ask the user to supply the page from a normal browser session.
+- Reuse copies already saved in the run rather than fetching the same page again.
+- Record the access route in the source's `review_note`: user-saved browser copy,
+  agent-operated browser, or scripted request with its time and user-agent.
+- Keep saved copies as private research evidence. Reproducing SSO legislation in a
+  published work is subject to clause 13's conditions; do not publish downloads.
+
 ## Treatment record
 
 For every decisive case, record the last search date, sources queried, queries and

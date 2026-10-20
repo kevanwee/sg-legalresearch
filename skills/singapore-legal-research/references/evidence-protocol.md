@@ -52,7 +52,7 @@ time.** Fill in `retrieved_on` from the actual source retrieval, together with:
 | `publication_authority` | What this copy is: court-issued reasons, published report, official consolidation, supplied copy, etc.; include relevant status qualifications. |
 | `identity_verified` | Boolean after matching title, identifier, court/instrument and other metadata to the source. |
 | `full_text_reviewed` | Boolean after examining the source for the relevant context, rather than relying on a snippet or headnote. |
-| `review_note` | What was compared, the version actually read, and any limits. |
+| `review_note` | What was compared, the version actually read, how the copy was obtained (user-saved browser copy, agent-operated browser, or scripted request with time and user-agent), and any limits. |
 | `version_review` | For legislation relied on: selected date, operative provision, commencement, amendments, savings, revision and any old/new numbering evidence. |
 | `treatment` | For cases relied on: status, explanatory note and search-log IDs. |
 

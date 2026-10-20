@@ -116,6 +116,12 @@ also covers SAL publications, Singapore Law Watch and sector regulators. Search
 snippets and commentary help find material; the underlying source supplies evidence.
 Public judgment searches are not comprehensive citator checks.
 
+The skill retrieves within each site's terms. SSO permits automated extraction only
+from 3 a.m. to 7 a.m. Singapore time, so at other times the agent asks you to save the
+SSO provision view from your browser (as HTML or PDF) and works from that copy. It
+identifies scripted requests honestly, never bypasses a block or challenge, and stops
+and asks for the page if a site refuses access. See [access and retrieval conduct](skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
+
 ## Statute citations have changed
 
 The skill checks current AGC guidance alongside the 2021 SLR style guide and the 2007
