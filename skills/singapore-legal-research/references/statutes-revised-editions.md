@@ -60,7 +60,9 @@ the provision view in an agent-operated real browser where available, otherwise 
 user to save it; do not script SSO requests outside 3–7 a.m. Singapore time. Use
 `ValidDate=YYYYMMDD` for a past version and record the page's status line. If a source
 blocks retrieval, disclose that and use a user-supplied copy or official download rather
-than an unverified third-party paraphrase.
+than an unverified third-party paraphrase. Follow [statutory-source fallbacks](statute-source-fallbacks.md)
+for independent publications, authorised legislation services and version-labelled
+repository copies; preserve an unresolved version finding if currency cannot be proved.
 
 ## Version receipt
 

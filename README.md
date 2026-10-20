@@ -137,6 +137,16 @@ The skill retrieves within each site's terms, in this order:
 The agent never bypasses a block or challenge; if a site refuses access, it stops and
 moves to the next route. See [access and retrieval conduct](skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
 
+If SSO remains unavailable, the skill tries relevant independent sources before
+asking you to save an SSO page: eGazette
+enactments and commencement instruments, independently hosted official documents,
+LawNet where authorised, and selected texts in WIPO Lex or ILO NATLEX. Available web
+readers/download tools can retrieve these when no browser works. A link back to SSO
+is not an independent copy. No source guarantees complete coverage or currency: an
+older text stays version-labelled, and **text retrieved; applicable version unverified**
+remains an unresolved finding where necessary. The same provision and quotation
+checks apply to non-SSO text. See the [fallback sources and verification workflow](skills/singapore-legal-research/references/statute-source-fallbacks.md).
+
 ## Statute citations have changed
 
 The skill checks current AGC guidance alongside the 2021 SLR style guide and the 2007

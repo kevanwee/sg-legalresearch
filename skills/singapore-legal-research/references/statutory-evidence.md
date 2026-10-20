@@ -5,6 +5,12 @@ are the same as for judgments: research retrieves the precise operative provisio
 before citing it; cite-checking starts with the provision actually cited in the draft
 and tests that provision against the proposition or quotation.
 
+This workflow accepts reviewed text from sources other than SSO. When SSO is
+unavailable, follow [statutory-source fallbacks](statute-source-fallbacks.md) for
+independent official publications, authorised databases and version-labelled copies.
+Obtaining text does not establish that it governs the relevant date; unresolved
+version findings must remain visible.
+
 ## Identify the instrument before checking its section
 
 For every fresh document, identify each statutory citation from its full title,
