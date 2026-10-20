@@ -56,6 +56,11 @@ draft with planted errors. All planted errors were caught. The trial found and f
   normally in testing, including historical versions; then pages the user saves; then
   scripted requests within the terms. It stops on a block.
 
+  **Later clarification (20 October 2026):** the above records the original trial,
+  not an AGC exemption for agent-operated browsers. The current skill applies SSO's
+  automated-collection window to browser and script collection; see the maintained
+  [retrieval guidance](../skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
+
 ## Boundary hardening before this release
 
 Recognised separate note blocks now stop judgment indexing instead of being absorbed

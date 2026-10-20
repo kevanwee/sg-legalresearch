@@ -133,6 +133,18 @@ class ElitigationTests(unittest.TestCase):
                 r.index_paragraphs(run, "S1", "bracketed", "Synthetic review cannot override a broken boundary.")
             with self.assertRaises(ValueError):
                 r.locate_quote(run, "S1", "[1]", "Synthetic second paragraph.")
+            # An index saved by the old implementation must also be rechecked;
+            # reviewed flags and a matching snapshot hash cannot bless it.
+            data = r.load_run(run)
+            source_record = data["sources"][0]
+            text = source.read_text(encoding="utf-8")
+            source_record["paragraph_index"] = {
+                "style": "bracketed", "boundaries_reviewed": True,
+                "review_note": "Synthetic legacy index.", "text_sha256": source_record["text_sha256"],
+                "paragraphs": [{"paragraph": 1, "start": 4, "end": len(text.rstrip()), "text": text[4:].rstrip()}]}
+            r.write_json(run / "run.json", data)
+            with self.assertRaisesRegex(ValueError, "label on its own line"):
+                r.locate_quote(run, "S1", "[1]", "Synthetic second paragraph.")
 
     def test_note_source_numbers_survive_gaps_and_out_of_order_definitions(self):
         page = judg("Judg-1", "1&emsp;Synthetic reasoning." + note(7, "Seven.") + note(2, "Two."))
