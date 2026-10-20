@@ -116,12 +116,19 @@ also covers SAL publications, Singapore Law Watch and sector regulators. Search
 snippets and commentary help find material; the underlying source supplies evidence.
 Public judgment searches are not comprehensive citator checks.
 
+For live research, the skill first discovers and loads the available browser tools.
+An empty inventory from one tool triggers checks of other exposed integrations,
+including the installed-browser route through Windows computer use where available.
+It confirms access against a needed official source and records the route and any
+failures. A tool-enforced stop or site block ends the affected attempt. See
+[browser discovery](skills/singapore-legal-research/references/sources-authority.md#browser-discovery).
+
 The skill retrieves within each site's terms, in this order:
 
 1. **An agent-operated real browser**, such as Claude in Chrome or the desktop app's
    browser. The agent opens the few pages it needs at reading pace and saves them, with
-   no stealth or disguise. In testing, SSO loaded normally this way at any hour,
-   including historical versions.
+   no stealth or disguise. Availability is established for each session; earlier
+   successful browsing does not verify the current run's live access.
 2. **Pages you save from your browser**, if no agent browser is available or a page is
    refused. The agent lists the exact links to save.
 3. **Scripted requests**, only within each site's terms. SSO permits automated
