@@ -16,6 +16,10 @@ body/table/footnote/endnote coverage. Installer tests use temporary directories 
 run copied helpers under `-I`, `-P` and `PYTHONSAFEPATH=1` from another directory,
 including with an unrelated `statutory.py` on `PYTHONPATH`. Path-based import tests
 also verify that loading the installed helper does not modify `sys.path`.
+Converter tests use synthetic pages that imitate eLitigation's markup: footnote
+pop-ups, spacer blocks, unnumbered continuations, quotations, headings, signatures and
+a separately numbered dissent. Before release the converter was also checked locally
+against four real judgments, whose numbered paragraphs all reconciled with the page.
 Paragraph-evidence regressions cover paraphrases requiring complete paragraphs,
 multi-paragraph ranges, missing paragraphs, incorrect relabelling, changed indexes,
 quotes matching elsewhere in a judgment, original citations and proposed corrections,

@@ -86,6 +86,7 @@ assert sys.path == before
             self.assertTrue((destination / "SKILL.md").is_file())
             self.assertTrue((destination / "references/statutes-revised-editions.md").is_file())
             self.assertTrue((destination / "scripts/statutory.py").is_file())
+            self.assertTrue((destination / "scripts/converters.py").is_file())
             self.assertTrue((destination / "references/statutory-evidence.md").is_file())
             script = destination / "scripts/research.py"
             run = Path(folder) / "private-run"

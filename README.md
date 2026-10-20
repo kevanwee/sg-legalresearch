@@ -280,7 +280,8 @@ an explicit gap; a wrong original citation stays a finding even when a separatel
 verified replacement is proposed. The lawyer receives the findings and sources for
 review. A materially revised draft starts a fresh run.
 
-The Python helper can preserve source bytes, extract Word paragraphs and notes, index
+The Python helper can preserve source bytes, extract Word paragraphs and notes, convert
+saved eLitigation judgment pages to paragraph-numbered text, index
 judgment paragraph labels, pull full cited paragraphs, bind quotations to those
 paragraphs, detect changed snapshots and missing draft locations, and
 export reviewed CSL-JSON records. The agent must identify individual citations, read
