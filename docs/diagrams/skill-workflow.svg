@@ -1,133 +1,126 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="940" viewBox="0 0 1680 940" role="img" aria-labelledby="title description">
-  <title id="title">How the Singapore legal research skill works</title>
-  <desc id="description">Four horizontal swimlanes show the lawyer, agent using the skill, research sources, and optional offline helpers. The lawyer supplies a question or draft. The agent scopes the task, plans research or inventories citations, and retrieves primary sources using session research tools. Saved runs capture sources and exact passages. The agent evaluates legal support, instrument identity, applicable version and treatment. Helpers check record consistency. Errors return for correction and renewed review. The agent delivers pinpointed research or cite-check findings, with gaps, for the lawyer to review. The lawyer then completes applicable citator checks, court-format checks and sign-off before filing, serving or sending.</desc>
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker>
-    <style>
-      text { font-family: Arial, Helvetica, sans-serif; fill: #172b40; }
-      .heading { font-size: 26px; font-weight: 700; }
-      .subheading { font-size: 16px; fill: #475569; }
-      .lane { font-size: 18px; font-weight: 700; }
-      .lane-note { font-size: 14px; fill: #475569; }
-      .task { fill: white; stroke: #365b75; stroke-width: 1.8; }
-      .task-title { font-size: 17px; font-weight: 700; text-anchor: middle; }
-      .task-text { font-size: 15px; text-anchor: middle; }
-      .flow { fill: none; stroke: #334155; stroke-width: 2; marker-end: url(#arrow); stroke-linejoin: round; }
-      .label { font-size: 14px; fill: #334155; }
-      .rule { stroke: #b8c7d4; stroke-width: 1; }
-    </style>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="2300" height="1110" viewBox="0 0 2300 1110" role="img" aria-labelledby="title description">
+<title id="title">Singapore legal research: saved-run workflow</title>
+<desc id="description">Three lanes assign work to the lawyer, research agent and offline helpers. A request starts scoping, access discovery and source retrieval. Retrieval includes independent-source fallback and recording unresolved gaps. Helpers snapshot and index available evidence. The agent assesses legal support, identity, version and treatment, then invokes consistency checks. Errors route to an explicit correction task and return through paired link events A to scoping. Valid records are delivered with limits to the lawyer. The lawyer may request more review or accept the report and complete applicable professional checks and controlled delivery. External publishers supply evidence but do not own internal retrieval tasks.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#334155"/></marker></defs>
+<rect width="2300" height="1110" fill="white"/>
 
-  <rect width="1680" height="940" fill="white"/>
-  <text x="24" y="38" class="heading">From question or draft to traceable findings</text>
-  <text x="24" y="66" class="subheading">Responsibilities and hand-offs · Research and cite-check modes · Saved-run path shown</text>
-
-  <!-- Horizontal lanes remain fixed; each task sits with its responsible actor. -->
-  <rect x="24" y="92" width="1632" height="170" fill="#f5f8fc"/>
-  <rect x="24" y="262" width="1632" height="210" fill="#edf6fb"/>
-  <rect x="24" y="472" width="1632" height="170" fill="#f5f8fc"/>
-  <rect x="24" y="642" width="1632" height="220" fill="#f0f7f3"/>
-  <rect x="24" y="92" width="1632" height="770" fill="none" stroke="#7890a4" stroke-width="1.5"/>
-  <path d="M 184 92 V 862 M 24 262 H 1656 M 24 472 H 1656 M 24 642 H 1656" class="rule"/>
-
-  <text x="42" y="164" class="lane">Lawyer</text>
-  <text x="42" y="190" class="lane-note">Question and review</text>
-  <text x="42" y="343" class="lane">Agent</text>
-  <text x="42" y="369" class="lane-note">Uses this skill</text>
-  <text x="42" y="543" class="lane">Sources</text>
-  <text x="42" y="569" class="lane-note">Via session tools</text>
-  <text x="42" y="724" class="lane">Offline helpers</text>
-  <text x="42" y="750" class="lane-note">Optional saved run</text>
-
-  <!-- Sequence flows are routed outside task boxes. -->
-  <path d="M 300 222 V 302" class="flow"/>
-  <path d="M 400 357 H 430" class="flow"/>
-  <path d="M 650 357 H 730 V 510" class="flow"/>
-  <text x="660" y="402" class="label">Retrieve</text>
-  <path d="M 730 604 V 727 H 860" class="flow"/>
-  <text x="745" y="674" class="label">Source text</text>
-  <path d="M 970 680 V 412" class="flow"/>
-  <text x="982" y="546" class="label">Exact passages</text>
-  <path d="M 1080 357 H 1205 V 680" class="flow"/>
-  <text x="1217" y="546" class="label">Reviewed evidence</text>
-  <path d="M 1315 727 H 1345" class="flow"/>
-  <path d="M 1400 672 V 590 H 1530 V 412" class="flow"/>
-  <text x="1411" y="620" class="label">Yes</text>
-  <path d="M 1400 782 V 826 H 820 V 727 H 860" class="flow"/>
-  <text x="1020" y="814" class="label">No: correct records or record a genuine limit; repeat review</text>
-  <path d="M 1530 302 V 242 H 540 V 222" class="flow"/>
-  <text x="960" y="237" class="label">Findings for lawyer review</text>
-  <path d="M 650 175 H 670" class="flow"/>
-  <path d="M 890 175 H 910" class="flow"/>
-  <path d="M 1130 175 H 1150" class="flow"/>
-  <path d="M 1370 175 H 1420" class="flow"/>
-
-  <!-- Lawyer tasks run from left to right after findings are returned. -->
-  <rect x="200" y="128" width="200" height="94" rx="12" class="task"/>
-  <text x="300" y="157" class="task-title">Give the task</text>
-  <text x="300" y="182" class="task-text">Question or preserved draft</text>
-  <text x="300" y="204" class="task-text">Facts, forum, relevant date</text>
-  <rect x="430" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="540" y="157" class="task-title">Review and decide</text>
-  <text x="540" y="182" class="task-text">Read decisive passages</text>
-  <text x="540" y="204" class="task-text">Resolve gaps; revise as needed</text>
-  <rect x="670" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="780" y="157" class="task-title">Check later treatment</text>
-  <text x="780" y="182" class="task-text">Authorised citator if available</text>
-  <text x="780" y="204" class="task-text">Retain any access limitation</text>
-  <rect x="910" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="1020" y="157" class="task-title">Check court format</text>
-  <text x="1020" y="182" class="task-text">Applicable Practice Directions</text>
-  <text x="1020" y="204" class="task-text">Filing and bundle requirements</text>
-  <rect x="1150" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="1260" y="157" class="task-title">Review and sign off</text>
-  <text x="1260" y="182" class="task-text">Resolve outstanding issues</text>
-  <text x="1260" y="204" class="task-text">Professional responsibility</text>
-  <rect x="1420" y="128" width="220" height="94" rx="12" class="task"/>
-  <text x="1530" y="157" class="task-title">File, serve or send</text>
-  <text x="1530" y="182" class="task-text">Lawyer-controlled action</text>
-  <text x="1530" y="204" class="task-text">Separate from skill execution</text>
-
-  <!-- Agent tasks describe instructions and judgment, not automated script powers. -->
-  <rect x="200" y="302" width="200" height="110" rx="12" class="task"/>
-  <text x="300" y="331" class="task-title">Scope and select mode</text>
-  <text x="300" y="356" class="task-text">Question, events, law-as-at</text>
-  <text x="300" y="378" class="task-text">Research or cite-check</text>
-  <text x="300" y="400" class="task-text">Fresh run for each draft</text>
-  <rect x="430" y="302" width="220" height="110" rx="12" class="task"/>
-  <text x="540" y="331" class="task-title">Plan the source work</text>
-  <text x="540" y="356" class="task-text">Research: map propositions</text>
-  <text x="540" y="378" class="task-text">Cite-check: inventory locations</text>
-  <text x="540" y="400" class="task-text">Preserve original citations</text>
-  <rect x="860" y="302" width="220" height="110" rx="12" class="task"/>
-  <text x="970" y="331" class="task-title">Read and assess</text>
-  <text x="970" y="356" class="task-text">Passage supports proposition?</text>
-  <text x="970" y="378" class="task-text">Right instrument and version?</text>
-  <text x="970" y="400" class="task-text">Context and later treatment?</text>
-  <rect x="1420" y="302" width="220" height="110" rx="12" class="task"/>
-  <text x="1530" y="331" class="task-title">Deliver findings</text>
-  <text x="1530" y="356" class="task-text">Memo or cite-check report</text>
-  <text x="1530" y="378" class="task-text">Pinpoints; adverse authority</text>
-  <text x="1530" y="400" class="task-text">Corrections, coverage and gaps</text>
-
-  <!-- Sources supply material through the agent's available research tools. -->
-  <rect x="580" y="510" width="300" height="94" rx="12" class="task"/>
-  <text x="730" y="539" class="task-title">Retrieve primary material</text>
-  <text x="730" y="564" class="task-text">eLitigation / LawNet · SSO / eGazette</text>
-  <text x="730" y="586" class="task-text">Parliament: Bills and Hansard</text>
-
-  <!-- Mechanical validation does not decide whether a legal proposition is sound. -->
-  <rect x="860" y="680" width="220" height="94" rx="12" class="task"/>
-  <text x="970" y="709" class="task-title">Capture the evidence</text>
-  <text x="970" y="734" class="task-text">Snapshots; full cited passages</text>
-  <text x="970" y="756" class="task-text">Locators, versions and spans</text>
-  <rect x="1095" y="680" width="220" height="94" rx="12" class="task"/>
-  <text x="1205" y="709" class="task-title">Check saved records</text>
-  <text x="1205" y="734" class="task-text">Hashes, spans and receipts</text>
-  <text x="1205" y="756" class="task-text">Coverage, not legal judgment</text>
-  <path d="M 1400 672 L 1455 727 L 1400 782 L 1345 727 Z" fill="#fff6d6" stroke="#8a6d22" stroke-width="1.8"/>
-  <text x="1400" y="716" class="task-text"><tspan x="1400">Pass</tspan><tspan x="1400" dy="18">status?</tspan></text>
-
-  <text x="24" y="893" class="subheading">Unavailable source → agent records an access gap. Wrong original citation → agent preserves it and verifies any proposed correction separately.</text>
-  <text x="24" y="921" class="subheading">Brief chat answers can omit saved-run helpers. A helper pass (including pass-with-limits) does not establish legal correctness or complete citator coverage.</text>
+<text x="24" y="40" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700" text-anchor="start" fill="#172b40">Singapore legal research: saved-run workflow</text>
+<text x="24" y="72" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#172b40">Current process · Research and cite-check · Lawyer retains acceptance and professional responsibility</text>
+<text x="24" y="110" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#475569">External evidence: eLitigation / authorised LawNet · SSO / independent statutory publications · Parliament Bills and Hansard</text>
+<rect x="24" y="160" width="2252" height="210" fill="#f5f8fc"/>
+<text x="42" y="246" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="start" fill="#172b40">Lawyer</text>
+<text x="42" y="274" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start" fill="#475569">Scope and acceptance</text>
+<rect x="24" y="370" width="2252" height="410" fill="#edf6fb"/>
+<text x="42" y="456" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="start" fill="#172b40">Research agent</text>
+<text x="42" y="484" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start" fill="#475569">Uses session tools</text>
+<rect x="24" y="780" width="2252" height="200" fill="#f0f7f3"/>
+<text x="42" y="866" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="start" fill="#172b40">Offline helpers</text>
+<text x="42" y="894" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start" fill="#475569">Invoked by agent</text>
+<rect x="24" y="160" width="2252" height="820" fill="none" stroke="#7890a4" stroke-width="1.5"/><path d="M200 160V980M24 370H2276M24 780H2276" fill="none" stroke="#b8c7d4"/>
+<path d="M260 240H285" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M395 285V430" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M505 480H550" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M770 480H815" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M935 550V835" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1055 882H1130V480H1190" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1300 530V835" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1410 882H1460V480H1590" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1680 480H1840" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="1690" y="463" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#172b40">Valid / with limits</text>
+<path d="M1635 525V590H1800V640" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="1660" y="580" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#172b40">Errors</text>
+<path d="M1970 430V360H1540V285" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="1830" y="347" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#172b40">Report and source record</text>
+<path d="M1650 240H1685" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1775 240H1840" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="1791" y="224" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#172b40">Yes</text>
+<path d="M2100 240H2160" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1730 285V295" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="1743" y="293" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#172b40">No</text>
+<path d="M1800 730V740" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M250 480H285" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<circle cx="240" cy="240" r="20" fill="white" stroke="#334155" stroke-width="1.8"/>
+<text x="240" y="282" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Request</text>
+<g id="define-request"><rect x="285" y="195" width="220" height="90" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="395.0" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Define the request</text>
+<text x="395.0" y="250" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Facts, forum, dates</text>
+<text x="395.0" y="271" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Question or preserved draft</text>
+</g>
+<g id="lawyer-review"><rect x="1430" y="195" width="220" height="90" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="1540.0" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Review the findings</text>
+<text x="1540.0" y="250" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Read decisive evidence</text>
+<text x="1540.0" y="271" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Assess gaps and corrections</text>
+</g>
+<g id="accept-report"><path d="M1730 195L1775 240L1730 285L1685 240Z" fill="#fff6d6" stroke="#8a6d22" stroke-width="1.8"/>
+<text x="1730" y="248" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="700" text-anchor="middle" fill="#172b40">×</text>
+<text x="1730" y="177" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Accept report?</text>
+</g>
+<g id="professional-checks"><rect x="1840" y="185" width="260" height="110" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="1970.0" y="214" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Complete professional work</text>
+<text x="1970.0" y="240" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Treatment / court directions</text>
+<text x="1970.0" y="261" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Sign off; file, serve or send</text>
+<rect x="1963.0" y="276" width="14" height="14" fill="white" stroke="#365b75"/><path d="M1966.0 283H1974.0M1970.0 279V287" fill="none" stroke="#365b75"/>
+</g>
+<circle cx="2180" cy="240" r="20" fill="white" stroke="#334155" stroke-width="4"/>
+<text x="2180" y="282" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Lawyer delivery</text>
+<circle cx="1730" cy="315" r="20" fill="white" stroke="#334155" stroke-width="1.8"/>
+<circle cx="1730" cy="315" r="16" fill="none" stroke="#334155" stroke-width="1"/>
+<path d="M1720 310H1731V305L1741 315L1731 325V320H1720Z" fill="#334155" stroke="#334155"/>
+<text x="1730" y="352" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">A: More review</text>
+<g id="scope"><rect x="285" y="430" width="220" height="100" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="395.0" y="459" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Scope the work</text>
+<text x="395.0" y="485" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Research or cite-check</text>
+<text x="395.0" y="506" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Fresh run for a new draft</text>
+</g>
+<g id="discover-and-plan"><rect x="550" y="430" width="220" height="100" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="660.0" y="459" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Discover access; plan</text>
+<text x="660.0" y="485" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Load available tools</text>
+<text x="660.0" y="506" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Issue map / draft inventory</text>
+</g>
+<g id="retrieve"><rect x="815" y="430" width="240" height="120" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="935.0" y="459" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Retrieve needed sources</text>
+<text x="935.0" y="485" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Exact authority and version</text>
+<text x="935.0" y="506" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Fallback or unresolved gap</text>
+<rect x="928.0" y="531" width="14" height="14" fill="white" stroke="#365b75"/><path d="M931.0 538H939.0M935.0 534V542" fill="none" stroke="#365b75"/>
+</g>
+<g id="legal-assessment"><rect x="1190" y="430" width="220" height="100" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="1300.0" y="459" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Assess legal support</text>
+<text x="1300.0" y="485" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Identity, version, context</text>
+<text x="1300.0" y="506" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Proposition and treatment</text>
+</g>
+<g id="record-result"><path d="M1635 435L1680 480L1635 525L1590 480Z" fill="#fff6d6" stroke="#8a6d22" stroke-width="1.8"/>
+<text x="1635" y="488" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="700" text-anchor="middle" fill="#172b40">×</text>
+<text x="1635" y="417" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Record check result?</text>
+</g>
+<g id="deliver"><rect x="1840" y="430" width="260" height="100" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="1970.0" y="459" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Deliver traceable findings</text>
+<text x="1970.0" y="485" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Memo / cite-check report</text>
+<text x="1970.0" y="506" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Pinpoints, coverage and gaps</text>
+</g>
+<g id="correct"><rect x="1690" y="640" width="220" height="90" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="1800.0" y="669" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Correct and re-review</text>
+<text x="1800.0" y="695" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Evidence and records</text>
+<text x="1800.0" y="716" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">New draft → fresh run</text>
+</g>
+<circle cx="1800" cy="760" r="20" fill="white" stroke="#334155" stroke-width="1.8"/>
+<circle cx="1800" cy="760" r="16" fill="none" stroke="#334155" stroke-width="1"/>
+<path d="M1790 755H1801V750L1811 760L1801 770V765H1790Z" fill="#334155" stroke="#334155"/>
+<text x="1800" y="802" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">A · Return to scope</text>
+<circle cx="230" cy="480" r="20" fill="white" stroke="#334155" stroke-width="1.8"/>
+<circle cx="230" cy="480" r="16" fill="none" stroke="#334155" stroke-width="1"/>
+<path d="M220 475H231V470L241 480L231 490V485H220Z" fill="white" stroke="#334155"/>
+<text x="230" y="522" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">A</text>
+<g id="capture"><rect x="815" y="835" width="240" height="95" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="935.0" y="864" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Snapshot and index</text>
+<text x="935.0" y="890" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Available full cited passages</text>
+<text x="935.0" y="911" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Source hashes and locators</text>
+</g>
+<g id="validate"><rect x="1190" y="835" width="220" height="95" rx="12" fill="white" stroke="#365b75" stroke-width="1.8"/>
+<text x="1300.0" y="864" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#172b40">Check saved records</text>
+<text x="1300.0" y="890" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Spans, receipts, coverage</text>
+<text x="1300.0" y="911" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#172b40">Record consistency only</text>
+</g>
+<text x="230" y="1016" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#172b40">Circles: start / thick-outline end | XOR: exclusive choice | [+]: collapsed subprocess | A: paired return links</text>
+<text x="230" y="1048" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#172b40">Solid arrows show sequence within this process. Detailed retrieval and professional-check rules are in the process-model review.</text>
+<text x="230" y="1080" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#172b40">A helper pass does not certify law or complete citator coverage. Brief chat answers can omit saved-run helpers; the skill never files automatically.</text>
 </svg>

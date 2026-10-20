@@ -4,7 +4,7 @@ A Singapore-specific legal research skill for Codex and Claude Code. Find author
 check a draft's citations, trace legislation and Hansard, and prepare research memos
 with evidence the reader can inspect.
 
-[Install](#install) · [How it works](#how-the-skill-works) · [Release review](docs/release-v0.1.0.md)
+[Install](#install) · [How it works](#how-the-skill-works) · [Contribute](CONTRIBUTING.md) · [Release review](docs/release-v0.1.0.md)
 
 The skill combines legal research instructions with offline Python helpers. It uses
 the research tools available in your agent session; it does not supply a legal database,
@@ -154,6 +154,10 @@ older text stays version-labelled, and **text retrieved; applicable version unve
 remains an unresolved finding where necessary. The same provision and quotation
 checks apply to non-SSO text. See the [fallback sources and verification workflow](skills/singapore-legal-research/references/statute-source-fallbacks.md).
 
+The remaining access and operative-version verification work is tracked in
+[statutory-source issue #15](https://github.com/kevanwee/sg-legalresearch-skill/issues/15),
+including live acceptance tests and the limits of alternative sources.
+
 ## Statute citations have changed
 
 The skill checks current AGC guidance alongside the 2021 SLR style guide and the 2007
@@ -280,16 +284,19 @@ new session. Private research runs are separate from the skill installation.
 
 ## How the skill works
 
-The swimlanes show who performs each step and where work passes between the lawyer,
-the agent using this skill, the available research sources and the optional offline
-helpers. The source lane represents retrieval through the agent's session tools;
-the bundled Python helpers do not browse legal databases.
+The swimlanes assign work to the lawyer, the research agent and the offline helpers.
+Retrieval belongs to the agent; external publishers supply evidence rather than
+performing internal workflow tasks. Helpers do not browse legal databases.
 
 ![Swimlane diagram of the skill's research and cite-check workflow](docs/diagrams/skill-workflow.svg)
 
 [Open the full-size swimlane diagram](docs/diagrams/skill-workflow.svg). It shows the
 saved-run path; a brief chat-only answer can retain the retrieved evidence in the
 tool transcript instead.
+The [+] tasks collapse retrieval/fallback and downstream professional work; paired
+A link events return corrections or further-review requests to scoping. See the
+[process-model review and routing rules](docs/process-model-review.md) for scope,
+ownership, exception handling and proposed measurements.
 
 Research starts with an issue map and retrieves the complete paragraphs or provisions
 supporting each proposition. Cite-checking starts with the preserved draft and its
