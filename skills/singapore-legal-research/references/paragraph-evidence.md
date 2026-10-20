@@ -31,6 +31,23 @@ the report or judgment actually cited.
 
 ## Capture full paragraphs in a saved run
 
+For an eLitigation judgment, save the page and convert it with the bundled command
+before snapshotting:
+
+```sh
+python skills/singapore-legal-research/scripts/research.py extract-elitigation judgment.html --out judgment.txt
+```
+
+It writes `[n]` paragraph text with unnumbered paragraphs, sub-paragraphs and
+quotations kept inside their paragraph. Headings, signatures and counsel are left out,
+and footnote pop-ups go to a separate notes file with inline `[note: N]` markers. A
+judgment whose opinions number their paragraphs separately produces one file per
+opinion, each needing its own source ID. The JSON report gives the case header, each
+opinion's author and paragraph range, and a reconciliation of numbered blocks,
+spacers and continuations. Review any warnings, then snapshot the saved page with
+`--text` set to the output file and `--transformation` set to the reported
+transformation. The command never fetches a page and never overwrites a file.
+
 After snapshotting the actual source and any documented text extraction, identify
 its explicit line-start paragraph-label format. `bracketed` accepts `[35] Text`;
 `numbered` accepts `35 Text` or `35` followed by a tab/em-space and text on the same

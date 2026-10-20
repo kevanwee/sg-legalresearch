@@ -15,14 +15,20 @@ import uuid
 import xml.etree.ElementTree as ET
 import zipfile
 
-# Load the bundled sibling explicitly: isolated/safe-path Python omits this folder
-# from sys.path, and a working-directory/PYTHONPATH module must not replace it.
-_statutory_spec = importlib.util.spec_from_file_location(
-    "_sg_legalresearch_statutory", Path(__file__).resolve().with_name("statutory.py"))
-if _statutory_spec is None or _statutory_spec.loader is None:
-    raise ImportError("Cannot load the bundled statutory.py helper")
-_statutory = importlib.util.module_from_spec(_statutory_spec)
-_statutory_spec.loader.exec_module(_statutory)
+# Load bundled siblings explicitly: isolated/safe-path Python omits this folder
+# from sys.path, and a working-directory/PYTHONPATH module must not replace them.
+def _load_sibling(name):
+    spec = importlib.util.spec_from_file_location(
+        "_sg_legalresearch_" + name, Path(__file__).resolve().with_name(name + ".py"))
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load the bundled {name}.py helper")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_statutory = _load_sibling("statutory")
+converters = _load_sibling("converters")
 canonical_provision = _statutory.canonical_provision
 build_provisions = _statutory.build_provisions
 checked_provisions = _statutory.checked_provisions
@@ -366,6 +372,36 @@ def extract_docx(file):
             warnings.append("Headers, footers and comments are not inventoried; inspect separately if in scope")
     warnings.append("OOXML note IDs may differ from displayed numbers; reconcile with Word. Text boxes and complex layouts need visual review.")
     return {"blocks": blocks, "warnings": warnings}
+
+
+def write_new_text(path, text):
+    with Path(path).open("x", encoding="utf-8", newline="\n") as stream:
+        stream.write(text)
+
+
+def extract_elitigation_page(html_file, out, notes_out=None):
+    """Convert a saved eLitigation page to [n] paragraph text without overwriting files."""
+    result = converters.extract_elitigation(Path(html_file).read_text(encoding="utf-8-sig"))
+    out = Path(out)
+    many = len(result["opinions"]) > 1
+    targets = [out.with_name(f"{out.stem}-opinion-{i}{out.suffix}") if many else out
+               for i in range(1, len(result["opinions"]) + 1)]
+    notes_out = Path(notes_out) if notes_out else out.with_name(out.stem + "-notes" + out.suffix)
+    for path in targets + ([notes_out] if result["notes"] else []):
+        if path.exists():
+            raise FileExistsError(f"{path} already exists; choose new output paths")
+    files = []
+    for path, opinion in zip(targets, result["opinions"]):
+        write_new_text(path, opinion["text"])
+        files.append({"file": str(path), "author": opinion["author"], "first": opinion["first"],
+                      "last": opinion["last"], "paragraphs": opinion["paragraphs"]})
+    if result["notes"]:
+        write_new_text(notes_out, "\n".join(result["notes"]) + "\n")
+    return {"header": result["header"], "opinions": files,
+            "notes_file": str(notes_out) if result["notes"] else None, "notes": len(result["notes"]),
+            "report": result["report"], "transformation": converters.ELITIGATION_TRANSFORMATION,
+            "next": "Review the warnings and header, then snapshot the saved page with --text set to "
+                    "each opinion file and this transformation; separate opinions need separate source IDs."}
 
 
 def attach_draft(root, file):
@@ -833,6 +869,10 @@ def main(argv=None):
     provision.add_argument("run", type=Path)
     provision.add_argument("--source", required=True)
     provision.add_argument("--locator", required=True)
+    elit = sub.add_parser("extract-elitigation", help="convert a saved eLitigation judgment page to [n] paragraph text")
+    elit.add_argument("html", type=Path)
+    elit.add_argument("--out", type=Path, required=True)
+    elit.add_argument("--notes", type=Path)
     docx = sub.add_parser("extract-docx", help="snapshot a Word draft and inventory text")
     docx.add_argument("run", type=Path)
     docx.add_argument("file", type=Path)
@@ -849,6 +889,8 @@ def main(argv=None):
         elif args.command == "snapshot":
             output = snapshot(args.run, args.file, args.id, args.title, args.kind, args.url,
                               args.citation, args.version, args.text, args.transformation)
+        elif args.command == "extract-elitigation":
+            output = extract_elitigation_page(args.html, args.out, args.notes)
         elif args.command == "extract-docx":
             output = attach_draft(args.run, args.file)
         elif args.command == "index-paragraphs":
