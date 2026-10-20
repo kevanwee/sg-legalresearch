@@ -16,6 +16,28 @@ spec.loader.exec_module(installer)
 
 
 class PackagingTests(unittest.TestCase):
+    def test_cli_writes_utf8_json_for_text_outside_the_console_code_page(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = installer.install("codex", Path(folder) / "skills")
+            script, run = destination / "scripts/research.py", Path(folder) / "run"
+            source = Path(folder) / "source.txt"
+            source.write_text("[1] Synthetic text stored on a CD‑ROM — ≤ one copy.\n", encoding="utf-8")
+
+            def cli(*args):
+                done = subprocess.run([sys.executable, "-I", str(script), *map(str, args)],
+                                      capture_output=True, cwd=folder)
+                self.assertEqual(done.returncode, 0, done.stderr.decode("utf-8", "replace"))
+                return json.loads(done.stdout.decode("utf-8"))
+
+            cli("init", run, "--question", "Synthetic encoding question", "--research-date", "2026-10-20",
+                "--law-as-at", "2026-10-20")
+            cli("snapshot", run, source, "--id", "S1", "--kind", "case", "--title", "Synthetic — not law",
+                "--url", "https://example.invalid", "--citation", "SYNTHETIC-1", "--version", "synthetic")
+            cli("index-paragraphs", run, "--source", "S1", "--style", "bracketed", "--confirm-boundaries",
+                "--review-note", "Synthetic boundaries reviewed.")
+            packet = cli("passages", run, "--source", "S1", "--pinpoint", "[1]")
+            self.assertIn("CD‑ROM — ≤", packet["evidence"]["passages"][0]["text"])
+
     def test_installed_cli_starts_in_safe_path_modes(self):
         with tempfile.TemporaryDirectory() as folder:
             destination = installer.install("codex", Path(folder) / "skills")

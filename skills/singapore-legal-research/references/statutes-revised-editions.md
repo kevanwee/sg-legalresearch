@@ -54,9 +54,12 @@ For a provision cited in an older judgment:
    mismatch is a research issue, not a licence to silently correct enacted text.
 
 For SSO's renumbering guidance and publication-status explanations consult its
-[FAQ, especially B1 and E1–E3](https://sso.agc.gov.sg/FAQ). If a source blocks automated
-retrieval, disclose that and use a browser or official download rather than an
-unverified third-party paraphrase.
+[FAQ, especially B1 and E1–E3](https://sso.agc.gov.sg/FAQ). Retrieve SSO text under
+[access and retrieval conduct](sources-authority.md#access-and-retrieval-conduct):
+outside 3–7 a.m. Singapore time, ask the user to save the provision view from a normal
+browser rather than scripting requests. If a source blocks retrieval, disclose that and
+use a user-supplied copy or official download rather than an unverified third-party
+paraphrase.
 
 ## Version receipt
 

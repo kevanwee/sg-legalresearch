@@ -21,7 +21,7 @@ The release review covers skill instructions and reference routing, agreement
 between documented evidence requirements and helper checks, installed-copy packaging,
 isolated execution, repository hygiene, installation instructions and diagram layout.
 
-The automated suite contains 115 tests using synthetic sources and documents. The
+The automated suite contains 117 tests using synthetic sources and documents. The
 whole suite is also run with `python -I`; copied installations are exercised with
 `-I`, `-P` and `PYTHONSAFEPATH=1`, including an unrelated `statutory.py` on `PYTHONPATH`.
 Repository and skill metadata validators check the published files. Linux/Windows CI
@@ -33,8 +33,26 @@ and [Claude Code skill documentation](https://code.claude.com/docs/en/skills).
 [AGC's revision guidance](https://www.agc.gov.sg/our-roles/drafter-of-laws/revised-editions-of-legislation/)
 and the [Judiciary's Supreme Court overview](https://www.judiciary.gov.sg/who-we-are/role-structure-supreme-court)
 were reopened during review. This is not fresh substantive verification of every
-linked authority or live statute. Automated SSO retrieval was unavailable during
-this review; each research run must still verify its own official instrument and date.
+linked authority or live statute; each research run must still verify its own official
+instrument and date. The SSO and eLitigation terms of use and SSO's `robots.txt` were
+read on 20 October 2026 for the access and retrieval conduct rules.
+
+## Live-source trial
+
+Before this release the skill was run end to end on real public sources: a research
+memo on copyright infringement under the Copyright Act 2021 and *Global Yellow Pages
+Ltd v Promedia Directories Pte Ltd* [2017] SGCA 28, and a cite-check of a synthetic
+draft with planted errors. All planted errors were caught. The trial found and fixed:
+
+- **Windows output encoding.** The CLI crashed when a captured passage contained a
+  character outside the console code page (SSO text uses U+2011) and output was piped.
+  It now always writes UTF-8.
+- **SSO headings ending in "etc."** A correct statutory map was refused because the
+  next section's heading ended with "etc."; such headings are now valid boundaries.
+- **Retrieval conduct.** Scripted SSO requests during the trial triggered a firewall
+  challenge. The skill now follows SSO's terms (automated extraction only 3–7 a.m.
+  Singapore time, honest identification, no circumvention), prefers pages the user
+  saves from a normal browser, and stops on a block.
 
 ## Boundary hardening before this release
 

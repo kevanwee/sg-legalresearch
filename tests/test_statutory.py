@@ -275,6 +275,13 @@ class StatutoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "cuts off"):
             r.build_provisions(text, self.spans(text, [("s 9", "9.—", "Nine two")]))
 
+    def test_next_heading_ending_in_etc_is_a_valid_boundary(self):
+        text = ("146.—(1) Synthetic infringement rule.\nSynthetic importation for dealing, etc.\n"
+                "147.—(1) Next synthetic rule.\nSynthetic heading.\n148. Third.\n")
+        self.assertTrue(r.build_provisions(text, self.spans(text, [("s 146", "146.—", "rule.")])))
+        with self.assertRaisesRegex(ValueError, "cuts off"):
+            r.build_provisions(text, self.spans(text, [("s 147", "147.—", "rule.")]))
+
     def test_quote_from_closing_words_needs_the_parent_citation(self):
         text = self.CLOSING
         source_file = self.base / "closing.txt"

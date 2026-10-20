@@ -758,6 +758,11 @@ def export_library(root, output):
 
 
 def main(argv=None):
+    # Source text is not limited to the console code page (e.g. U+2011 in SSO text);
+    # piped Windows output would otherwise crash or emit non-UTF-8 JSON.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
     init = sub.add_parser("init", help="create a new private research ledger")
