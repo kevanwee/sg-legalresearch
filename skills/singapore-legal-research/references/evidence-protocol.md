@@ -137,6 +137,21 @@ For an ellipsis or bracketed alteration, record each unchanged segment separatel
 preserve the displayed alteration in the output, and manually review order, omissions
 and meaning. The checker does not validate the legal effect of an omission.
 
+Build quote records with the `quote` command rather than searching the text yourself:
+
+```sh
+python skills/singapore-legal-research/scripts/research.py quote runs/matter --source S1 --pinpoint "[103]" --text "the quoted words" --id Q1 --claim C1
+```
+
+It searches **only the cited paragraphs or provision**, so words that also appear
+elsewhere in the source are bound to the passage actually cited. Whitespace in the
+given words may differ from the source; the record keeps the source's exact text and
+offsets. If the words are not in the cited passage, it fails and reports where they
+do occur, which is often the right pinpoint to check. If they occur more than once in
+the passage, choose one with `--occurrence`. An ellipsis is refused: quote each segment
+separately. Add the printed record to `quotes` and set `pinpoint_reviewed: true` only
+after checking it against the source.
+
 The quotation's source and pinpoint must also appear in its linked claim's evidence.
 For numbered cases, the checker binds the evidence to every full selected paragraph
 in the reviewed source index and requires the quotation to lie within those paragraphs.
