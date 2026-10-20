@@ -4,7 +4,7 @@ A Singapore-specific legal research skill for Codex and Claude Code. Find author
 check a draft's citations, trace legislation and Hansard, and prepare research memos
 with evidence the reader can inspect.
 
-[Install](#install) · [How it works](#how-the-skill-works) · [Contribute](CONTRIBUTING.md) · [Release review](docs/release-v0.2.0.md)
+[Install](#install) · [How it works](#how-the-skill-works) · [Contribute](CONTRIBUTING.md) · [Release review](docs/release-v0.2.1.md)
 
 The skill combines legal research instructions with offline Python helpers. It uses
 the research tools available in your agent session; it does not supply a legal database,
@@ -134,12 +134,15 @@ The skill retrieves within each site's terms, in this order:
 3. **Scripted requests**, only within each site's terms. SSO permits automated
    extraction only from 3 a.m. to 7 a.m. Singapore time.
 
-That SSO window concerns automated extraction, not ordinary manual browsing.
-The skill also applies it to agent-driven collection through a browser: the
+That SSO window concerns automated extraction, not ordinary manual browsing. The
 [published conditions](https://sso.agc.gov.sg/Terms-of-Use) contain no express
-agent-browser or small-volume exemption. Applicable AGC permission may support a
-different route. Outside the window, research continues through independent sources
-or user-saved copies; successful page loading alone does not settle the terms question.
+agent-browser or small-volume exemption, so the maintainer has adopted a policy and
+recorded it as such: an agent-operated real browser may read the provisions a question
+needs at any hour, at reading pace, keeping private evidence copies only; scripted or
+bulk collection stays within the window. This is the maintainer's reading, not AGC's
+classification, and applicable AGC permission would supersede it. Without a working
+browser outside the window, research continues through independent sources or
+user-saved copies.
 
 The agent never bypasses a block or challenge; if a site refuses access, it stops and
 moves to the next route. See [access and retrieval conduct](skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
@@ -179,7 +182,7 @@ The reference PDFs are not redistributed; their titles, sections and fingerprint
 
 ## Install
 
-Use the **v0.2.0 release** for a pinned installation. These instructions are for
+Use the **v0.2.1 release** for a pinned installation. These instructions are for
 local Codex and Claude Code sessions with filesystem skill support.
 
 ### 1. Get the release
@@ -192,13 +195,13 @@ Current external verification uses the research tools available in your agent se
 LawNet access requires your own authorised subscription where relevant.
 
 ```sh
-git clone --branch v0.2.0 --depth 1 https://github.com/kevanwee/sg-legalresearch-skill.git
+git clone --branch v0.2.1 --depth 1 https://github.com/kevanwee/sg-legalresearch-skill.git
 cd sg-legalresearch-skill
 ```
 
 Without Git, download the **Source code (zip)** from the
-[v0.2.0 release](https://github.com/kevanwee/sg-legalresearch-skill/releases/tag/v0.2.0),
-extract it, and open a terminal in the extracted `sg-legalresearch-skill-0.2.0` folder
+[v0.2.1 release](https://github.com/kevanwee/sg-legalresearch-skill/releases/tag/v0.2.1),
+extract it, and open a terminal in the extracted `sg-legalresearch-skill-0.2.1` folder
 containing `README.md`, `scripts/` and `skills/`.
 
 ### 2. Install for your agent
@@ -268,7 +271,7 @@ If `python` cannot be found, use the Python launcher described in step 1. An
 
 For manual installation, copy the entire `skills/singapore-legal-research/` directory
 to your agent's skills folder above. The release also includes a compact
-`singapore-legal-research-v0.2.0.zip`: extract it and copy its
+`singapore-legal-research-v0.2.1.zip`: extract it and copy its
 `singapore-legal-research/` folder to the same location. Do not copy the surrounding
 repository folder or an extra nesting level. No installer is included in the compact
 archive. `SHA256SUMS.txt` records its SHA-256 checksum.
