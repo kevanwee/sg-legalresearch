@@ -64,6 +64,63 @@ class ElitigationTests(unittest.TestCase):
             with self.subTest(boundary=boundary), self.assertRaisesRegex(ValueError, "label on its own line"):
                 r.converters.extract_elitigation(page)
 
+    def test_label_detached_by_nested_blocks_is_refused(self):
+        page = judg("Judg-1", "1&emsp;Synthetic first paragraph.") + judg("Judg-1", "<div>2</div><div>Synthetic second paragraph.</div>")
+        with self.assertRaisesRegex(ValueError, "label on its own line"):
+            r.converters.extract_elitigation(page)
+
+    def test_list_continuations_survive_conversion_indexing_and_quotation(self):
+        # Synthetic structure: six paragraphs, 22 separate list blocks, multiple
+        # list levels and inline word splits. No downloaded judgment in fixtures.
+        page, expected = "", {}
+        for number, count in enumerate((4, 4, 4, 4, 3, 3), 1):
+            intro = f"Synthetic paragraph {number} includes:"
+            page += judg("Judg-1", f"{number}&emsp;{intro}")
+            lines = [intro]
+            for item in range(count):
+                text = f"({chr(97 + item)}) Synthetic clause {number}.{item} includes Be<span>ta</span>."
+                page += judg(f"Judg-List-{1 + item % 3}", text)
+                lines.append(text.replace("<span>", "").replace("</span>", ""))
+            expected[number] = "\n".join(lines)
+        page += judg("Judg-Sign", "Synthetic Judge") + judg("Judg-Heading-1", "Annex 1") + judg("Judg-List-1", "(a) Synthetic annex only.")
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            html, body, run = root / "page.html", root / "body.txt", root / "run"
+            html.write_text(page, encoding="utf-8")
+            converted = r.extract_elitigation_page(html, body)
+            self.assertEqual(converted["report"]["continuation_blocks"], 22)
+            self.assertNotIn("unrecognised", converted["report"]["block_counts"])
+            r.init_run(run, "Synthetic complete paragraph regression", "research", "2026-10-20", "2026-10-20")
+            r.snapshot(run, html, "S1", "Synthetic case", "case", "https://example.invalid/case", "SYNTHETIC", "test",
+                       text_file=body, transformation=converted["transformation"])
+            r.index_paragraphs(run, "S1", "bracketed", "Compared synthetic paragraph contents.")
+            rows = r.build_paragraphs(body.read_text(encoding="utf-8"), "bracketed")
+            self.assertEqual({row["paragraph"]: row["text"] for row in rows}, expected)
+            for number in expected:
+                words = f"Synthetic clause {number}.2 includes Beta."
+                quote = r.locate_quote(run, "S1", f"[{number}]", words)
+                self.assertEqual(quote["pinpoint"], f"[{number}]")
+                with self.assertRaises(ValueError):
+                    r.locate_quote(run, "S1", f"[{number % 6 + 1}]", words)
+            with self.assertRaises(ValueError):
+                r.locate_quote(run, "S1", "[6]", "Synthetic annex only.")
+
+    def test_nested_list_blocks_keep_boundaries_without_splitting_inline_words(self):
+        page = (judg("Judg-1", "1&emsp;Synthetic scope:")
+                + judg("Judg-List-1", "(a) Be<span>ta</span><div class='Judg-List-2'>(i) Inner rule.</div>Closing words.")
+                + judg("Judg-1", "2&emsp;Next paragraph."))
+        result = r.converters.extract_elitigation(page)
+        self.assertEqual(result["opinions"][0]["text"],
+                         "[1] Synthetic scope:\n(a) Beta (i) Inner rule. Closing words.\n[2] Next paragraph.\n")
+        self.assertEqual(result["report"]["warnings"], [])
+
+    def test_unrecognised_list_class_remains_visible_for_review(self):
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Synthetic body.")
+                                                + judg("Judg-List-Unknown", "Synthetic unclassified text."))
+        self.assertEqual(result["report"]["block_counts"]["unrecognised"], 1)
+        self.assertTrue(result["report"]["warnings"])
+        self.assertEqual(result["trailing"][0]["text"], "Synthetic unclassified text.")
+
     def test_previously_converted_mixed_label_text_cannot_be_indexed_or_quoted(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

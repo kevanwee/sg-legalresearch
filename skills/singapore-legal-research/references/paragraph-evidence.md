@@ -38,7 +38,8 @@ before snapshotting:
 python skills/singapore-legal-research/scripts/research.py extract-elitigation judgment.html --out judgment.txt
 ```
 
-It writes `[n]` paragraph text with unnumbered paragraphs, sub-paragraphs and
+It writes `[n]` paragraph text with unnumbered paragraphs, sub-paragraphs (including
+`Judg-List-1`, `Judg-List-2` and deeper numbered list classes) and
 quotations kept inside their paragraph. Headings, signatures and counsel are left out,
 and footnote pop-ups go to a separate notes file with inline `[note: N]` markers. A
 judgment whose opinions number their paragraphs separately produces one file per
@@ -56,6 +57,10 @@ report's `note_reconciliation` lists reference/definition counts, missing or dup
 definitions, unreferenced notes and conflicting popup targets. Ambiguous unlabelled
 text is retained as `[note: unlabelled]` with a warning, never assigned a new number.
 Resolve warnings against the original; repeated references do not imply duplicate definitions.
+Before confirming paragraph boundaries or full-text review, reconcile excluded or
+unrecognised blocks against the paragraphs relied on. If body text was omitted,
+correct the extraction and rebuild the index; an unchanged paragraph count is not
+evidence of completeness. Record how material warnings were resolved in the review note.
 The case-header summary preserves adjacent inline text and inserts separators at
 block boundaries; still verify the case name and citation against the saved source.
 
