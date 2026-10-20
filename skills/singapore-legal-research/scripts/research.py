@@ -278,9 +278,9 @@ def locate_quote(root, source_id, pinpoint, words, occurrence=None, quote_id="",
         raise ValueError("quote each unaltered segment separately; do not include an ellipsis")
     data, source, text = source_and_text(root, source_id)
     if source.get("kind") == "legislation":
-        passages, _ = select_provision(checked_provisions(source, text), pinpoint)
-        pinpoint = canonical_provision(pinpoint)
         rows = checked_provisions(source, text)
+        passages, _ = select_provision(rows, pinpoint)
+        pinpoint = canonical_provision(pinpoint)
         where = lambda i: next((p["locator"] for p in sorted(rows, key=lambda p: p["end"] - p["start"])
                                 if p["start"] <= i < p["end"]), "outside the mapped provisions")
     else:
