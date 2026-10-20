@@ -175,6 +175,37 @@ SSO = ('<html><head><title>\n Synthetic Act 2099 - Singapore Statutes Online\n</
 
 
 class SsoTests(unittest.TestCase):
+    def test_only_target_subtree_is_extracted_without_a_footer(self):
+        page = ("<div>Outside before</div><section class='view' id='legisContent'>"
+                "<div><p>12. Synthetic rule.</p><div><p>More synthetic wording.</p></div></div>"
+                "</section><aside>Outside after</aside>")
+        result = r.converters.extract_sso(page)
+        self.assertEqual(result["text"], "12. Synthetic rule.\nMore synthetic wording.\n")
+        self.assertNotIn("Outside", result["text"])
+
+    def test_equivalent_container_attributes_do_not_change_content(self):
+        expected = r.converters.extract_sso(SSO)["text"]
+        for opening in ("<div class='x' id='legisContent'>", '<DIV data-x="1" ID = "legisContent" class="x">',
+                        '<div\nclass="x"\nid="legisContent"\n>'):
+            with self.subTest(opening=opening):
+                page = SSO.replace('<div id="legisContent">', opening)
+                self.assertEqual(r.converters.extract_sso(page)["text"], expected)
+
+    def test_comments_void_elements_and_script_do_not_corrupt_container(self):
+        page = ("<div id='legisContent'><!-- <div>fake</div> -->"
+                "<p>12. Synthetic &amp; exact &amp;lt;word&amp;gt;.<br>Continuation<img src='x'></p>"
+                "<script>doNotInclude('FAKE');</script><style>FAKE_STYLE</style></div><p>Sibling</p>")
+        text = r.converters.extract_sso(page)["text"]
+        self.assertEqual(text, "12. Synthetic & exact &lt;word&gt;.\nContinuation\n")
+
+    def test_unclosed_duplicate_and_unbalanced_containers_are_refused(self):
+        pages = ["<div id='legisContent'><p>12. Truncated.</p>",
+                 "<div id='legisContent'>12. One.</div><div id='legisContent'>13. Two.</div>",
+                 "<div id='legisContent'><span>12. Broken.</div>"]
+        for page in pages:
+            with self.subTest(page=page), self.assertRaisesRegex(ValueError, "container"):
+                r.converters.extract_sso(page)
+
     def test_provision_text_and_version_evidence(self):
         result = r.converters.extract_sso(SSO)
         self.assertEqual(result["text"], "Synthetic heading\n12.—(1) Synthetic rule applies if —\n"
