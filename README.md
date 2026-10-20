@@ -4,7 +4,7 @@ A Singapore-specific legal research skill for Codex and Claude Code. Find author
 check a draft's citations, trace legislation and Hansard, and prepare research memos
 with evidence the reader can inspect.
 
-[Install](#install) · [How it works](#how-the-skill-works) · [Contribute](CONTRIBUTING.md) · [Release review](docs/release-v0.2.0.md)
+[Install](#install) · [How it works](#how-the-skill-works) · [Contribute](CONTRIBUTING.md) · [Release review](docs/release-v0.2.1.md)
 
 The skill combines legal research instructions with offline Python helpers. It uses
 the research tools available in your agent session; it does not supply a legal database,
@@ -182,7 +182,7 @@ The reference PDFs are not redistributed; their titles, sections and fingerprint
 
 ## Install
 
-Use the **v0.2.0 release** for a pinned installation. These instructions are for
+Use the **v0.2.1 release** for a pinned installation. These instructions are for
 local Codex and Claude Code sessions with filesystem skill support.
 
 ### 1. Get the release
@@ -195,13 +195,13 @@ Current external verification uses the research tools available in your agent se
 LawNet access requires your own authorised subscription where relevant.
 
 ```sh
-git clone --branch v0.2.0 --depth 1 https://github.com/kevanwee/sg-legalresearch-skill.git
+git clone --branch v0.2.1 --depth 1 https://github.com/kevanwee/sg-legalresearch-skill.git
 cd sg-legalresearch-skill
 ```
 
 Without Git, download the **Source code (zip)** from the
-[v0.2.0 release](https://github.com/kevanwee/sg-legalresearch-skill/releases/tag/v0.2.0),
-extract it, and open a terminal in the extracted `sg-legalresearch-skill-0.2.0` folder
+[v0.2.1 release](https://github.com/kevanwee/sg-legalresearch-skill/releases/tag/v0.2.1),
+extract it, and open a terminal in the extracted `sg-legalresearch-skill-0.2.1` folder
 containing `README.md`, `scripts/` and `skills/`.
 
 ### 2. Install for your agent
@@ -271,7 +271,7 @@ If `python` cannot be found, use the Python launcher described in step 1. An
 
 For manual installation, copy the entire `skills/singapore-legal-research/` directory
 to your agent's skills folder above. The release also includes a compact
-`singapore-legal-research-v0.2.0.zip`: extract it and copy its
+`singapore-legal-research-v0.2.1.zip`: extract it and copy its
 `singapore-legal-research/` folder to the same location. Do not copy the surrounding
 repository folder or an extra nesting level. No installer is included in the compact
 archive. `SHA256SUMS.txt` records its SHA-256 checksum.
