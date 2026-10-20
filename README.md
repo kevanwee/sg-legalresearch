@@ -281,7 +281,8 @@ verified replacement is proposed. The lawyer receives the findings and sources f
 review. A materially revised draft starts a fresh run.
 
 The Python helper can preserve source bytes, extract Word paragraphs and notes, convert
-saved eLitigation judgment pages to paragraph-numbered text, index
+saved eLitigation judgment pages to paragraph-numbered text, convert saved SSO provision
+views to text with their version status, index
 judgment paragraph labels, pull full cited paragraphs, bind quotations to those
 paragraphs, detect changed snapshots and missing draft locations, and
 export reviewed CSL-JSON records. The agent must identify individual citations, read

@@ -5,6 +5,7 @@ fetch anything. Output is structural text for `snapshot --text`; the conversion 
 transformation that still needs review against the original page.
 """
 
+import html as html_module
 from html.parser import HTMLParser
 import re
 
@@ -13,6 +14,11 @@ ELITIGATION_TRANSFORMATION = (
     "sub-paragraphs and quotations kept as continuation lines of the preceding paragraph; "
     "headings, author lines, signatures and counsel removed; footnote pop-ups moved to a "
     "separate notes file with inline [note: N] markers; whitespace normalised within blocks.")
+
+SSO_TRANSFORMATION = (
+    "extract-sso: text of the page's provision container (id=legisContent) only, with tags as "
+    "line breaks, split labels such as '(a)' and '146.—(1)' rejoined, and navigation, version "
+    "list and footer removed; whitespace normalised within lines.")
 
 NUMBERED = re.compile(r"\s*(\d+)[  \t]+(.*)", re.S)
 EXCLUDED = ("Judg-Heading", "Judg-Sign", "Judg-Lawyers", "Judg-EOF")
@@ -153,3 +159,38 @@ def extract_elitigation(html):
                           "paragraphs": len(o["numbers"]), "text": "\n".join(o["lines"]) + "\n"} for o in opinions],
             "notes": [f"[note: {i}] {n}" for i, n in enumerate(parser.notes, 1)],
             "report": dict(report, extracted_paragraphs=extracted)}
+
+
+def _flat(fragment):
+    return html_module.unescape(re.sub(r"<[^>]+>", " ", fragment))
+
+
+def extract_sso(page):
+    """Return SSO provision text plus the page's title, version status and Act amendment list."""
+    start = page.find('<div id="legisContent">')
+    if start < 0:
+        raise ValueError("no SSO provision content found (id=legisContent); save the provision view of the page")
+    body = page[start:]
+    footer = re.search(r'<footer|<div[^>]*class="[^"]*footer', body)
+    body = body[:footer.start()] if footer else body
+    text = html_module.unescape(re.sub(r"<[^>]+>", "\n", body))
+    lines = [" ".join(line.split()) for line in text.splitlines()]
+    text = "\n".join(line for line in lines if line)
+    text = re.sub(r"\(\n(\w+)\n\)", r"(\1)", text)          # "(\na\n)" -> "(a)"
+    text = re.sub(r"^(\d+[A-Z]*\.)\n(—)", r"\1\2", text, flags=re.M)  # "146.\n—(1)" -> "146.—(1)"
+    text = re.sub(r"\n([),;.])", r"\1", text)               # stray punctuation lines
+    text = text.strip() + "\n"
+    flat = " ".join(_flat(page).split())
+    title = re.search(r"<title>\s*(.*?)\s*(?:-\s*Singapore Statutes Online)?\s*</title>", page, re.S)
+    status = re.search(r"Status:\s*(.+?)\s+Print\b", flat)
+    sections = re.findall(r"^(\d+[A-Z]*)\.(?:—|\s)", text, re.M)
+    warnings = []
+    if not status:
+        warnings.append("no version status line found; record the version from the page manually")
+    if not sections:
+        warnings.append("no numbered provision found in the content; check the saved view")
+    return {"title": " ".join(title[1].split()) if title else "",
+            "status": status[1] if status else "",
+            "act_amendments": [{"date": d, "by": act} for d, act in
+                               re.findall(r"(\d{2} \w{3} \d{4}) Amended by (Act \d+ of \d{4})", flat)],
+            "provisions": sections, "text": text, "warnings": warnings}

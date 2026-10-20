@@ -91,5 +91,54 @@ class ElitigationTests(unittest.TestCase):
             self.assertEqual(subprocess.run(args, capture_output=True, cwd=folder).returncode, 2)
 
 
+SSO = ('<html><head><title>\n Synthetic Act 2099 - Singapore Statutes Online\n</title></head><body>'
+       '<nav>Home Browse</nav><div class="status">Status: Not current version (effective from 01 Jan 2099 '
+       'to 02 Feb 2099) Print Select the provisions</div>'
+       '<div class="versions">03 Mar 2099 Amended by Act 9 of 2099 01 Jan 2099 Act 1 of 2099</div>'
+       '<div id="legisContent"><div class="prov1"><table><tr><td class="prov1Hdr">Synthetic heading</td></tr>'
+       '<tr><td class="prov1Txt"><strong>12.</strong>—(1)  Synthetic rule applies if —'
+       '<table><tr><td>(</td><td>a</td><td>)</td><td>the first synthetic condition; or</td></tr>'
+       '<tr><td>(</td><td>b</td><td>)</td><td>the second synthetic condition.</td></tr></table>'
+       '</td></tr><tr><td>(2)  A second synthetic subsection.</td></tr></table></div></div>'
+       '<div class="footer">Singapore Statutes Online FAQs Feedback</div></body></html>')
+
+
+class SsoTests(unittest.TestCase):
+    def test_provision_text_and_version_evidence(self):
+        result = r.converters.extract_sso(SSO)
+        self.assertEqual(result["text"], "Synthetic heading\n12.—(1) Synthetic rule applies if —\n"
+                                         "(a)\nthe first synthetic condition; or\n(b)\nthe second synthetic condition.\n"
+                                         "(2) A second synthetic subsection.\n")
+        self.assertEqual(result["title"], "Synthetic Act 2099")
+        self.assertEqual(result["status"], "Not current version (effective from 01 Jan 2099 to 02 Feb 2099)")
+        self.assertEqual(result["act_amendments"], [{"date": "03 Mar 2099", "by": "Act 9 of 2099"}])
+        self.assertEqual((result["provisions"], result["warnings"]), (["12"], []))
+        self.assertNotIn("FAQs", result["text"])
+
+    def test_converted_text_supports_a_provision_map(self):
+        text = r.converters.extract_sso(SSO)["text"]
+        rows = [("s 12", "12.—", None), ("s 12(1)", "(1) Synthetic", "(2) A second"),
+                ("s 12(1)(a)", "(a)", "(b)"), ("s 12(1)(b)", "(b)", "(2) A second")]
+        provisions = [{"locator": loc, "start": text.index(a), "end": text.index(b) if b else len(text),
+                       "status": "in-force", "status_note": "Synthetic fixture."} for loc, a, b in rows]
+        self.assertEqual(len(r.build_provisions(text, {"provisions": provisions})), 4)
+
+    def test_missing_content_is_refused_and_missing_status_warned(self):
+        with self.assertRaisesRegex(ValueError, "legisContent"):
+            r.converters.extract_sso("<html><body>Search page</body></html>")
+        no_status = SSO.replace("Status: ", "")
+        self.assertTrue(any("status" in w for w in r.converters.extract_sso(no_status)["warnings"]))
+
+    def test_cli_reports_status_and_does_not_overwrite(self):
+        with tempfile.TemporaryDirectory() as folder:
+            page = Path(folder) / "act.html"
+            page.write_text(SSO, encoding="utf-8")
+            args = [sys.executable, "-I", str(SCRIPT), "extract-sso", str(page), "--out", str(Path(folder) / "act.txt")]
+            done = subprocess.run(args, capture_output=True, cwd=folder)
+            self.assertEqual(done.returncode, 0, done.stderr.decode("utf-8", "replace"))
+            self.assertTrue(json.loads(done.stdout.decode("utf-8"))["status"].startswith("Not current version"))
+            self.assertEqual(subprocess.run(args, capture_output=True, cwd=folder).returncode, 2)
+
+
 if __name__ == "__main__":
     unittest.main()

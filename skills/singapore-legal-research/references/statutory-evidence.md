@@ -39,6 +39,20 @@ an uncited sibling as if it came from the cited leaf provision.
 The same rule applies to a parent's lead-in words: a quotation from the opening of
 `s 9A(2)` needs that parent as a cited evidence unit, rather than only `s 9A(2)(b)`.
 
+For an SSO provision view saved as HTML, convert it with the bundled command first:
+
+```sh
+python skills/singapore-legal-research/scripts/research.py extract-sso provision.html --out provision.txt
+```
+
+It writes the text of the page's provision container only, with split labels rejoined
+(`(a)`, `146.—(1)`) and navigation, version list and footer removed. Its JSON report
+gives the Act title, the page's version status line, the sections found, and the Act's
+amendment list ("Amended by Act … of …", Act-wide rather than provision-specific). Use
+the status line as the snapshot `--version`, review the amendment list in
+`version_review`, and pass the reported transformation to `snapshot`. It works on raw
+and browser-rendered pages, never fetches, and never overwrites a file.
+
 The helper uses a **reviewed provision map**, not a universal statutory-layout parser.
 Obtain the hierarchy and complete boundaries from the actual source or a documented
 structural extraction, then map locators to zero-based Python string offsets in the

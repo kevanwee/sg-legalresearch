@@ -20,6 +20,9 @@ Converter tests use synthetic pages that imitate eLitigation's markup: footnote
 pop-ups, spacer blocks, unnumbered continuations, quotations, headings, signatures and
 a separately numbered dissent. Before release the converter was also checked locally
 against four real judgments, whose numbered paragraphs all reconciled with the page.
+SSO converter tests use a synthetic provision view with split labels, a status line and
+an amendment list; the converter was also checked locally on a raw page and on
+browser-rendered current and historical pages.
 Paragraph-evidence regressions cover paraphrases requiring complete paragraphs,
 multi-paragraph ranges, missing paragraphs, incorrect relabelling, changed indexes,
 quotes matching elsewhere in a judgment, original citations and proposed corrections,
