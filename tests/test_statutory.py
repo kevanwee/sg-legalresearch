@@ -118,6 +118,15 @@ class StatutoryTests(unittest.TestCase):
                                 "text": words, "start": start, "end": start + len(words), "pinpoint_reviewed": True}]
         self.assertTrue(any("outside the full paragraphs/passages" in e for e in self.report()["errors"]))
 
+    def test_quote_command_searches_only_the_cited_provision(self):
+        r.write_json(self.run / "run.json", self.data)
+        quote = r.locate_quote(self.run, "L1", "section 9A(2)(a)", "the first condition is met;", quote_id="Q1", claim_id="C1")
+        self.assertEqual((quote["pinpoint"], quote["start"]), ("s 9A(2)(a)", TEXT.index("the first condition")))
+        self.data["quotes"] = [dict(quote, pinpoint_reviewed=True)]
+        self.assertFalse(self.report()["errors"])
+        with self.assertRaisesRegex(ValueError, r"not found in s 9A\(2\)\(a\); the words occur at s 9A\(2\)\(b\)"):
+            r.locate_quote(self.run, "L1", "s 9A(2)(a)", "the second condition is met.")
+
     def test_wrong_leaf_cannot_be_relabelled(self):
         ref = self.data["claims"][0]["evidence"][0]
         ref["passages"][0]["text"] = "(b) the second condition is met."

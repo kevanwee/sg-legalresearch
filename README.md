@@ -283,7 +283,8 @@ review. A materially revised draft starts a fresh run.
 The Python helper can preserve source bytes, extract Word paragraphs and notes, convert
 saved eLitigation judgment pages to paragraph-numbered text, convert saved SSO provision
 views to text with their version status, index
-judgment paragraph labels, pull full cited paragraphs, bind quotations to those
+judgment paragraph labels, pull full cited paragraphs, locate quotations inside the
+cited passage and bind them to those
 paragraphs, detect changed snapshots and missing draft locations, and
 export reviewed CSL-JSON records. The agent must identify individual citations, read
 the sources, assess support, and check subsequent treatment. A passing check is **not**

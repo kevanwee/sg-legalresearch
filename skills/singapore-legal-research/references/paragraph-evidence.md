@@ -124,7 +124,8 @@ text does not constitute legal verification.
 `check` regenerates the index from the saved source text and requires a case reference's
 `passages` to equal the full paragraph records selected by its `pinpoint`. A cropped
 sentence, another paragraph relabelled with the desired number, missing range member,
-or changed snapshot fails. A quotation must additionally fall within the cited
+or changed snapshot fails. Use the `quote` command to find quoted words inside the
+cited paragraphs (see [the evidence protocol](evidence-protocol.md)). A quotation must additionally fall within the cited
 paragraphs, not merely match somewhere in the judgment. Disjoint citations cannot
 justify a quotation from an intervening uncited paragraph.
 

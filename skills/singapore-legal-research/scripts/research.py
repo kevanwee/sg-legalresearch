@@ -270,6 +270,41 @@ def capture_provision(root, source_id, locator):
                          "pinpoint_reviewed": False, "support_note": ""}}
 
 
+def locate_quote(root, source_id, pinpoint, words, occurrence=None, quote_id="", claim_id=""):
+    """Find quoted words inside the cited passage only and return a quote record for run.json."""
+    if not nonempty(words):
+        raise ValueError("give the quoted words")
+    if re.search(r"\.\.\.|…", words):
+        raise ValueError("quote each unaltered segment separately; do not include an ellipsis")
+    data, source, text = source_and_text(root, source_id)
+    if source.get("kind") == "legislation":
+        rows = checked_provisions(source, text)
+        passages, _ = select_provision(rows, pinpoint)
+        pinpoint = canonical_provision(pinpoint)
+        where = lambda i: next((p["locator"] for p in sorted(rows, key=lambda p: p["end"] - p["start"])
+                                if p["start"] <= i < p["end"]), "outside the mapped provisions")
+    else:
+        rows = checked_paragraphs(source, text)
+        passages = select_paragraphs(rows, pinpoint)
+        pinpoint = canonical_pinpoint(pinpoint)
+        where = lambda i: next((f"[{p['paragraph']}]" for p in rows if p["start"] <= i < p["end"]),
+                               "outside the numbered paragraphs")
+    # Exact words, but any run of whitespace in them may match any run in the source.
+    pattern = re.compile(r"\s+".join(re.escape(w) for w in words.split()))
+    hits = [m for p in passages for m in pattern.finditer(text, p["start"], p["end"])]
+    if not hits:
+        elsewhere = list(dict.fromkeys(where(m.start()) for m in pattern.finditer(text)))  # source order
+        found = f"; the words occur at {', '.join(elsewhere)}" if elsewhere else "; they do not occur in the source"
+        raise ValueError(f"quoted words not found in {pinpoint}{found}")
+    if occurrence is None and len(hits) > 1:
+        raise ValueError(f"the words occur {len(hits)} times in {pinpoint}; choose one with --occurrence")
+    if occurrence is not None and not 1 <= occurrence <= len(hits):
+        raise ValueError(f"--occurrence must be between 1 and {len(hits)}")
+    match = hits[(occurrence or 1) - 1]
+    return {"id": quote_id, "claim_id": claim_id, "source_id": source_id, "pinpoint": pinpoint,
+            "text": match.group(0), "start": match.start(), "end": match.end(), "pinpoint_reviewed": False}
+
+
 def init_run(root, question, mode, research_date, law_as_at):
     iso_date(research_date)
     iso_date(law_as_at)
@@ -880,6 +915,14 @@ def main(argv=None):
     provision.add_argument("run", type=Path)
     provision.add_argument("--source", required=True)
     provision.add_argument("--locator", required=True)
+    quote = sub.add_parser("quote", help="find quoted words inside the cited passage and print a quote record")
+    quote.add_argument("run", type=Path)
+    quote.add_argument("--source", required=True)
+    quote.add_argument("--pinpoint", required=True)
+    quote.add_argument("--text", required=True)
+    quote.add_argument("--occurrence", type=int)
+    quote.add_argument("--id", default="")
+    quote.add_argument("--claim", default="")
     elit = sub.add_parser("extract-elitigation", help="convert a saved eLitigation judgment page to [n] paragraph text")
     elit.add_argument("html", type=Path)
     elit.add_argument("--out", type=Path, required=True)
@@ -903,6 +946,8 @@ def main(argv=None):
         elif args.command == "snapshot":
             output = snapshot(args.run, args.file, args.id, args.title, args.kind, args.url,
                               args.citation, args.version, args.text, args.transformation)
+        elif args.command == "quote":
+            output = locate_quote(args.run, args.source, args.pinpoint, args.text, args.occurrence, args.id, args.claim)
         elif args.command == "extract-elitigation":
             output = extract_elitigation_page(args.html, args.out, args.notes)
         elif args.command == "extract-sso":

@@ -505,6 +505,57 @@ class EvidenceTests(unittest.TestCase):
             r.export_library(self.run, self.base / "library.json")
 
 
+class QuoteTests(unittest.TestCase):
+    TEXT = ("[1] The same synthetic words appear here.\n[2] Again the same synthetic words appear here.\n"
+            "[3] Twice: the same synthetic words, and the same synthetic words.\n")
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+        self.run = self.base / "run"
+        r.init_run(self.run, "Synthetic quote question", "research", "2026-10-20", "2026-10-20")
+        source = self.base / "case.txt"
+        source.write_text(self.TEXT, encoding="utf-8")
+        r.snapshot(self.run, source, "S1", "Synthetic case — not law", "case",
+                   "https://example.invalid/case", "SYNTHETIC-1", "synthetic version")
+        r.index_paragraphs(self.run, "S1", "bracketed", "Synthetic boundaries reviewed.")
+
+    def test_quote_binds_to_the_cited_paragraph_not_the_first_occurrence(self):
+        quote = r.locate_quote(self.run, "S1", "[2]", "the same synthetic words", quote_id="Q1", claim_id="C1")
+        self.assertEqual(quote["start"], self.TEXT.index("the same synthetic words", self.TEXT.index("[2]")))
+        self.assertFalse(quote["pinpoint_reviewed"])
+        data = r.load_run(self.run)
+        source = data["sources"][0]
+        source.update(identity_verified=True, full_text_reviewed=True, publication_authority="Synthetic fixture only",
+                      review_note="Reviewed.", retrieved_on="2026-10-20",
+                      treatment={"status": "not-checked", "note": "Synthetic.", "search_ids": []})
+        evidence = dict(r.capture_passages(self.run, "S1", "[2]")["evidence"], pinpoint_reviewed=True, support_note="Synthetic.")
+        data.update(review="Synthetic review.", quotes=[dict(quote, pinpoint_reviewed=True)],
+                    claims=[{"id": "C1", "text": "Synthetic.", "location": "answer/p:1", "assessment": "supported",
+                             "reason": "Synthetic.", "evidence": [evidence]}])
+        r.write_json(self.run / "run.json", data)
+        self.assertFalse(r.check_run(self.run)["errors"])
+
+    def test_words_outside_the_cited_paragraph_are_located_for_the_reviewer(self):
+        with self.assertRaisesRegex(ValueError, r"not found in \[1\]; the words occur at \[2\]"):
+            r.locate_quote(self.run, "S1", "[1]", "Again the same")
+        with self.assertRaisesRegex(ValueError, "do not occur in the source"):
+            r.locate_quote(self.run, "S1", "[1]", "Invented synthetic words")
+
+    def test_repeated_words_need_an_occurrence(self):
+        with self.assertRaisesRegex(ValueError, "occur 2 times"):
+            r.locate_quote(self.run, "S1", "[3]", "the same synthetic words")
+        second = r.locate_quote(self.run, "S1", "[3]", "the same synthetic words", occurrence=2)
+        self.assertEqual(second["start"], self.TEXT.rindex("the same synthetic words"))
+
+    def test_whitespace_differences_match_but_ellipses_are_refused(self):
+        quote = r.locate_quote(self.run, "S1", "at [2]", "Again  the\nsame synthetic")
+        self.assertEqual(quote["text"], "Again the same synthetic")
+        with self.assertRaisesRegex(ValueError, "ellipsis"):
+            r.locate_quote(self.run, "S1", "[2]", "Again … words")
+
+
 class DraftTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
