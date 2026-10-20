@@ -151,6 +151,11 @@ do occur, which is often the right pinpoint to check. If they occur more than on
 the passage, choose one with `--occurrence`. An ellipsis is refused: quote each segment
 separately. Add the printed record to `quotes` and set `pinpoint_reviewed: true` only
 after checking it against the source.
+For a case sub-paragraph pinpoint such as `[185(b)]`, the returned record includes
+`scope` with the requested pinpoint, the full parent paragraphs searched and an
+explicit warning: sibling text may match because child boundaries are not indexed.
+Check the actual child against the source before setting the review flag. The
+warning describes the tool's search scope; it is not automatic child verification.
 
 The quotation's source and pinpoint must also appear in its linked claim's evidence.
 For numbered cases, the checker binds the evidence to every full selected paragraph

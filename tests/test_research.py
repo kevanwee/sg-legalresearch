@@ -525,6 +525,7 @@ class QuoteTests(unittest.TestCase):
         quote = r.locate_quote(self.run, "S1", "[2]", "the same synthetic words", quote_id="Q1", claim_id="C1")
         self.assertEqual(quote["start"], self.TEXT.index("the same synthetic words", self.TEXT.index("[2]")))
         self.assertFalse(quote["pinpoint_reviewed"])
+        self.assertNotIn("scope", quote)
         data = r.load_run(self.run)
         source = data["sources"][0]
         source.update(identity_verified=True, full_text_reviewed=True, publication_authority="Synthetic fixture only",
@@ -536,6 +537,26 @@ class QuoteTests(unittest.TestCase):
                              "reason": "Synthetic.", "evidence": [evidence]}])
         r.write_json(self.run / "run.json", data)
         self.assertFalse(r.check_run(self.run)["errors"])
+
+    def test_subparagraph_quote_discloses_actual_search_scope(self):
+        quote = r.locate_quote(self.run, "S1", "[1(b)]", "synthetic words")
+        self.assertEqual(quote["pinpoint"], "[1(b)]")
+        self.assertFalse(quote["pinpoint_reviewed"])
+        self.assertEqual(quote["scope"]["kind"], "full-numbered-paragraphs")
+        self.assertEqual(quote["scope"]["searched_paragraphs"], [1])
+        self.assertIn("sibling text may match", quote["scope"]["warning"])
+
+    def test_cli_subparagraph_range_reports_all_parent_paragraphs(self):
+        import subprocess
+        import sys
+        result = subprocess.run([sys.executable, "-I", str(SCRIPT), "quote", str(self.run),
+                                 "--source", "S1", "--pinpoint", "[1(a)]-[2(b)]", "--text", "Again the same"],
+                                capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        quote = json.loads(result.stdout.decode("utf-8"))
+        self.assertEqual(quote["scope"]["searched_paragraphs"], [1, 2])
+        self.assertEqual(quote["scope"]["requested_pinpoint"], "[1(a)]–[2(b)]")
+        self.assertIn("Manually verify", quote["scope"]["warning"])
 
     def test_words_outside_the_cited_paragraph_are_located_for_the_reviewer(self):
         with self.assertRaisesRegex(ValueError, r"not found in \[1\]; the words occur at \[2\]"):
