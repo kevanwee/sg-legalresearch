@@ -113,6 +113,9 @@ def pinpoint_units(value):
         first_sub, last_sub = m[2], (m[4] if m[3] else m[2])
         if last < first:
             raise ValueError("paragraph ranges must run forwards")
+        simple = re.fullmatch(r"\(([a-z])\)", first_sub or "") and re.fullmatch(r"\(([a-z])\)", last_sub or "")
+        if first == last and simple and last_sub < first_sub:
+            raise ValueError("sub-paragraph ranges must run forwards")
         units.append((first, first_sub, last, last_sub))
     return units
 
@@ -592,11 +595,13 @@ def check_run(root):
                         return False
                     if ref.get("locator_type", "paragraph") == "paragraph" and sid in paragraph_rows:
                         try:
-                            # Same paragraphs and same sub-paragraph labels: [185(c)] is not [185(b)].
+                            # Same paragraphs; where a sub-paragraph is cited, the same labels too:
+                            # [185(c)] is not [185(b)], but [35]–[36] is still [35], [36].
                             labels = lambda p: [(s1, s2) for _, s1, _, s2 in pinpoint_units(p)]
+                            same_labels = (not (has_subparagraph(ref["pinpoint"]) or has_subparagraph(pin))
+                                           or labels(ref["pinpoint"]) == labels(pin))
                             return (select_paragraphs(paragraph_rows[sid], ref["pinpoint"])
-                                    == select_paragraphs(paragraph_rows[sid], pin)
-                                    and labels(ref["pinpoint"]) == labels(pin))
+                                    == select_paragraphs(paragraph_rows[sid], pin) and same_labels)
                         except ValueError:
                             return False
                     if sources[sid].get("kind") == "legislation":

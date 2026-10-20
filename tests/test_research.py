@@ -368,7 +368,7 @@ class EvidenceTests(unittest.TestCase):
             with self.subTest(pin=pin):
                 self.assertEqual(r.canonical_pinpoint(pin), canonical)
         self.assertEqual(r.parse_pinpoint("[185(b)]"), [(185, 185)])
-        for pin in ("[185(b]", "[2(a)]-[1(b)]", "[185()]", "[185b]"):
+        for pin in ("[185(b]", "[2(a)]-[1(b)]", "[185()]", "[185b]", "[185(c)]–[185(a)]"):
             with self.subTest(pin=pin), self.assertRaises(ValueError):
                 r.parse_pinpoint(pin)
 
@@ -392,6 +392,11 @@ class EvidenceTests(unittest.TestCase):
         self.as_cited(pin="[1(b)]", status="wrong-pinpoint")
         self.data["claims"][0].update(assessment="qualified", evidence=[self.subparagraph_evidence("[1(b)]"),
                                                                         self.subparagraph_evidence("[1(a)]")])
+        self.assertFalse(self.report()["errors"])
+
+    def test_equivalent_range_forms_still_match_without_subparagraphs(self):
+        self.as_cited(pin="[1]–[2]")
+        self.data["claims"][0]["evidence"] = [self.subparagraph_evidence("[1], [2]")]
         self.assertFalse(self.report()["errors"])
 
     def test_capture_keeps_the_literal_subparagraph_pinpoint(self):
