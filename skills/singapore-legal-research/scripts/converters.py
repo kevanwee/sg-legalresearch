@@ -32,6 +32,8 @@ def clean(text):
 class _Judgment(HTMLParser):
     """Collect top-level Judg-* blocks; route footnote modal content to notes."""
 
+    HEADER_BREAKS = frozenset(("div", "br", "p", "table", "tr", "td", "th", "li"))
+
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.blocks, self.notes, self.header = [], [], []
@@ -50,6 +52,8 @@ class _Judgment(HTMLParser):
             self.in_header += tag == "div"
         elif tag == "div" and cls.startswith("HN-CaseName"):
             self.in_header = 1
+        if self.in_header and tag in self.HEADER_BREAKS:
+            self.header.append(" ")
         if tag == "div" and self.cls and cls.startswith("modal"):
             self.skip, self.note = 1, None
         elif tag == "sup" and self.cls:
@@ -70,8 +74,11 @@ class _Judgment(HTMLParser):
                     self.notes.append(clean("".join(self.note)))
                     self.note = None
             return
-        if self.in_header and tag == "div":
-            self.in_header -= 1
+        if self.in_header:
+            if tag in self.HEADER_BREAKS:
+                self.header.append(" ")
+            if tag == "div":
+                self.in_header -= 1
         if tag == "sup":
             self.sup = False
         elif tag == "div" and self.cls is not None:
@@ -222,7 +229,7 @@ def extract_elitigation(html):
         if (baseline is not None and sizes[-1] > max(2000, baseline * 10)) or sizes[-1] > 50000:
             report["warnings"].append(f"unusually large final paragraph [{numbers[-1]}]; "
                                       "inspect source boundaries (size is a diagnostic, not a boundary rule)")
-    return {"header": clean(" ".join(parser.header)),
+    return {"header": clean("".join(parser.header)),
             "opinions": [{"author": o["author"], "first": o["numbers"][0], "last": o["numbers"][-1],
                           "paragraphs": len(o["numbers"]), "text": "\n".join(o["lines"]) + "\n"} for o in opinions],
             "notes": [f"[note: {i}] {n}" for i, n in enumerate(parser.notes, 1)],
