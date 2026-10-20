@@ -159,6 +159,30 @@ class EvidenceTests(unittest.TestCase):
             "searched_on": "2026-10-20"}]
         self.assertEqual(self.report()["status"], "pass-with-limits")
 
+    def test_search_queries_are_screened_for_the_matter(self):
+        terms = self.base / "matter-terms.txt"
+        terms.write_text("# Synthetic matter\nAcme Widgets Pte Ltd\nProject Kestrel\n", encoding="utf-8")
+        self.data["matter_terms"] = str(terms)
+        self.data["search_log"] = [{"id": "T1", "database": "Synthetic database",
+            "query": "exclusion of terms implied in fact [2019] SGCA 12", "coverage": "Synthetic fixture only",
+            "result_note": "No matches in fixture.", "searched_on": "2026-10-20"}]
+        self.assertNotEqual(self.report()["status"], "fail")
+        self.data["search_log"][0]["query"] = "does ACME  widgets pte ltd's contract exclude implied terms"
+        errors = self.report()["errors"]
+        self.assertIn("T1: query contains a matter term 1; search with legal concepts only", errors)
+        self.assertFalse(any("acme" in e.lower() for e in errors))  # findings never echo the term
+        terms.unlink()
+        self.assertTrue(any("matter terms unreadable" in e for e in self.report()["errors"]))
+
+    def test_screen_flags_direct_identifiers_but_not_legal_citations(self):
+        found = r.screen("S1234567D 201912345K a.b@example.com +65 9123 4567")["findings"]
+        self.assertEqual([f["category"] for f in found],
+                         ["NRIC or FIN number", "UEN", "email address", "telephone number"])
+        for query in ("[2019] SGCA 12 at [42]", "Contract Law s 2(1)", "$5,000 threshold", "HC/S 123/2026"):
+            self.assertEqual(r.screen(query)["status"], "pass", query)
+        with self.assertRaises(OSError):  # an unreadable terms file fails closed
+            r.screen("query", self.base / "missing.txt")
+
     def test_treatment_claim_needs_search_evidence(self):
         self.case_source().update(treatment={"status": "citator-checked",
             "note": "Unsupported claim of citator use", "search_ids": []})
