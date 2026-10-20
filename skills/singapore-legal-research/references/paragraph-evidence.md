@@ -38,7 +38,8 @@ before snapshotting:
 python skills/singapore-legal-research/scripts/research.py extract-elitigation judgment.html --out judgment.txt
 ```
 
-It writes `[n]` paragraph text with unnumbered paragraphs, sub-paragraphs and
+It writes `[n]` paragraph text with unnumbered paragraphs, sub-paragraphs (including
+`Judg-List-1`, `Judg-List-2` and deeper numbered list classes) and
 quotations kept inside their paragraph. Headings, signatures and counsel are left out,
 and footnote pop-ups go to a separate notes file with inline `[note: N]` markers. A
 judgment whose opinions number their paragraphs separately produces one file per
@@ -47,11 +48,19 @@ opinion's author and paragraph range, and a reconciliation of numbered blocks,
 spacers and continuations. Review any warnings, then snapshot the saved page with
 `--text` set to the output file and `--transformation` set to the reported
 transformation. The command never fetches a page and never overwrites a file.
+It refuses detached integer labels in judgment-body blocks, including a final
+number with its text in a separate block or after a line break. It does not guess
+whether that text belongs to the preceding paragraph. Compare the original and use
+a documented extraction that keeps each label with its complete paragraph.
 Notes retain the source marker number, even with gaps or out-of-order popups. The
 report's `note_reconciliation` lists reference/definition counts, missing or duplicate
 definitions, unreferenced notes and conflicting popup targets. Ambiguous unlabelled
 text is retained as `[note: unlabelled]` with a warning, never assigned a new number.
 Resolve warnings against the original; repeated references do not imply duplicate definitions.
+Before confirming paragraph boundaries or full-text review, reconcile excluded or
+unrecognised blocks against the paragraphs relied on. If body text was omitted,
+correct the extraction and rebuild the index; an unchanged paragraph count is not
+evidence of completeness. Record how material warnings were resolved in the review note.
 The case-header summary preserves adjacent inline text and inserts separators at
 block boundaries; still verify the case name and citation against the saved source.
 
@@ -105,7 +114,8 @@ conversion; do not flatten every visible number into a new judgment paragraph.
 
 The indexer requires consecutive integer labels (each exactly one greater than the
 last) and rejects gaps, duplicates, restarts, out-of-order or lettered labels, and
-labels appearing alone on a line. An explicitly captured excerpt can start above 1;
+labels appearing alone on a line, even when their format differs from the selected
+style (for example, a bare `36` inside bracketed text). An explicitly captured excerpt can start above 1;
 the rule applies between the labels within it. A line containing only `[3]` or `36`
 is refused even at the end of the file, rather than absorbed into the preceding
 paragraph. The confirmation flag cannot override these checks, including when an

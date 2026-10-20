@@ -13,7 +13,7 @@ from statistics import median
 
 ELITIGATION_TRANSFORMATION = (
     "extract-elitigation: numbered Judg-1 paragraphs as [n]; unnumbered paragraphs, "
-    "sub-paragraphs and quotations kept as continuation lines of the preceding paragraph; "
+    "sub-paragraphs, Judg-List levels and quotations kept as continuation lines of the preceding paragraph; "
     "opinion boundaries tracked; separate sections and trailing blocks saved separately; "
     "headings and author lines omitted from paragraph text; footnote pop-ups moved to a "
     "separate notes file with inline [note: N] markers; whitespace normalised within blocks.")
@@ -58,6 +58,8 @@ class _Judgment(HTMLParser):
                         self.note.append(" ")
                     self.note_depth = self.skip
             return
+        if self.cls and tag in self.HEADER_BREAKS and not (tag == "div" and cls.startswith("modal")):
+            self.buf.append("\n")
         if self.in_header:
             self.in_header += tag == "div"
         elif tag == "div" and cls.startswith("HN-CaseName"):
@@ -78,8 +80,6 @@ class _Judgment(HTMLParser):
                 self.cls, self.depth, self.buf = cls.split()[0], 1, []
             elif self.cls is not None:
                 self.depth += 1
-        elif tag == "br" and self.cls:
-            self.buf.append(" ")
 
     def handle_endtag(self, tag):
         if self.skip:
@@ -95,6 +95,8 @@ class _Judgment(HTMLParser):
                                        "text": clean("".join(self.note))})
                     self.note = None
             return
+        if self.cls and tag in self.HEADER_BREAKS:
+            self.buf.append("\n")
         if self.in_header:
             if tag in self.HEADER_BREAKS:
                 self.header.append(" ")
@@ -236,6 +238,13 @@ def extract_elitigation(html):
             count("heading")
             report["excluded_blocks"] += 1
             continue
+        # Do not turn a detached paragraph label into continuation prose. In
+        # particular, a final label has no later numbering gap to expose it.
+        # Preserve <br> boundaries until this check, before whitespace cleanup.
+        if cls == "Judg-1" and re.search(
+                r"^\s*(?:\[[1-9]\d*\]|[1-9]\d*)[\t \u00a0\u2000-\u200a]*\r?$", raw, re.M):
+            raise ValueError("paragraph label on its own line in Judg-1; compare the saved HTML "
+                             "and use an extraction that preserves the label with its paragraph text")
         # An unsupported labelled section must not masquerade as unnumbered prose.
         if current and current["numbers"] and re.match(r"^\[?[A-Z]\.[1-9]\d*\]?\s", text):
             closed = "unsupported section numbering"
@@ -262,7 +271,8 @@ def extract_elitigation(html):
         if current is None or not current["numbers"]:
             count("front_matter")
             continue
-        if cls.startswith("Judg-Quote") or cls in ("Judg-1", "Judg-2", "Judg-3", "Judg-4"):
+        is_list = bool(re.fullmatch(r"Judg-List-[1-9]\d*", cls))
+        if cls.startswith("Judg-Quote") or is_list or cls in ("Judg-1", "Judg-2", "Judg-3", "Judg-4"):
             if text:
                 count("continuation")
                 current["lines"].append(("    " if cls.startswith("Judg-Quote") else "") + text)

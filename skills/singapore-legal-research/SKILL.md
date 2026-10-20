@@ -21,6 +21,9 @@ tool does not establish that browsing is unavailable. Confirm a route works by
 opening a needed official source and reading its content; record failures and any
 remaining access limits. Respect tool-enforced stops and site blocks. Do not require
 browser setup for prose-only proofreading or work expressly limited to supplied files.
+Apply publisher conditions before collecting source text: a real browser is not
+automatically exempt from SSO's automated-extraction window. See
+[access and retrieval conduct](references/sources-authority.md#access-and-retrieval-conduct).
 If SSO cannot be used, continue with [independent statutory sources](references/statute-source-fallbacks.md),
 including eGazette, authorised LawNet access and version-labelled repository copies.
 Use an available web reader or authorised retrieval tool for those sources if no

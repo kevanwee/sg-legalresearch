@@ -117,9 +117,11 @@ change security settings, or request credentials merely to complete discovery.
 
 ## Access and retrieval conduct
 
-Checked on **20 October 2026** against the [SSO Terms of Use](https://sso.agc.gov.sg/Terms-of-Use),
-[SSO robots.txt](https://sso.agc.gov.sg/robots.txt) and the
+Reviewed on **20 October 2026** against the [SSO Terms of Use](https://sso.agc.gov.sg/Terms-of-Use),
+[SSO FAQ A3](https://sso.agc.gov.sg/FAQ), [SSO robots.txt](https://sso.agc.gov.sg/robots.txt) and the
 [eLitigation Terms of Use](https://www.elitigation.sg/_layouts/IELS/Home/eLitigation_Terms_of_Use.htm).
+The latest terms/FAQ review used search-indexed publisher text; direct web-reader
+opens returned HTTP 403. That review does not establish live provision access.
 Recheck them when they matter. Use these retrieval routes, in order, falling back only
 when the one above is unavailable or fails. Complete [browser discovery](#browser-discovery)
 before concluding that route 1 is unavailable:
@@ -136,26 +138,39 @@ separate version check. Do not retry SSO through an alternative client after a b
      automated, change its fingerprint or user-agent, or solve CAPTCHAs.
    - Open only the pages the question needs, at human pace (about ten seconds or more
      between page views), and save each page's HTML (a screenshot helps review).
-   - A page that loads normally is ordinary browsing, including any background check the
-     site runs on every visitor's browser while the page loads. A CAPTCHA or other check
-     that asks for a response is different: if one, a block page or an error appears,
-     stop and fall back; do not retry or answer it.
-   - Tested on 20 October 2026: a real Chrome, openly marked as automated, loaded three
-     SSO provision views twelve seconds apart without challenge, including a historical
-     version.
+   - Successful loading establishes technical access, not permission for every
+     automated use. Apply the publisher's conditions to what the agent actually
+     does, including collecting text or saving pages. If a CAPTCHA, block page or
+     other challenge appears, stop and fall back; do not retry or answer it.
+   - Earlier Chrome success is environment-specific evidence, not a guarantee of
+     current availability or an exemption from the publisher's conditions.
 2. **Material the user supplies or saves in a normal browser.** For legislation, ask for
    the SSO provision view (e.g. `/Act/CA2021?ProvIds=pr146-`) saved as HTML or printed
    to PDF. List the exact links so the user can save them in one pass.
 3. **Scripted requests**, only within the site's terms as set out below.
 
-**SSO.** Clause 13(d) allows automated extraction only from **3 a.m. to 7 a.m. Singapore
-time**, and not in an abusive, intrusive or deceptive manner, or in a way that disrupts
-SSO or breaches or circumvents its security measures. Clause 12 lets AGC block an
-address without notice. `robots.txt` sets `crawl-delay: 6` and disallows `/search`.
-Route 1 treats a few page views in a real browser at reading pace as reading the site
-for research, not extracting legislation for a platform; if the user or AGC takes a
-different view, use route 2. Do not script SSO requests outside the 3–7 a.m. window.
-Within it, fetch only the provision views needed, once, at least six seconds apart.
+**SSO: browsing versus extraction.** Clause 13(d), also described in FAQ A3(d),
+conditions automated extraction for use/reproduction on **3 a.m. to 7 a.m. Singapore
+time** and non-disruptive, non-deceptive conduct. It does not state a bulk-only
+threshold or an agent-browser exemption. This is not a general opening-hours rule
+for a person reading SSO manually. However, collecting provision text or saving
+pages by an agent can be automated extraction even through a real browser.
+
+As this skill's conservative operating default, apply that window to automated
+SSO collection in both browser and script routes unless applicable AGC permission
+or published clarification supports the proposed use. Do not infer an exemption
+from slow requests, a small page count, or a page loading successfully. This default
+is an interpretation for the skill, not a claim that AGC has expressly classified
+every form of interactive AI-assisted reading. Record any applicable permission
+and its scope. Outside the window, continue immediately with independent statutory
+sources or a copy the user has already saved; there is no need to suspend research.
+If those cannot establish the needed version, give the user the exact manual-save
+link and explain the remaining check. Do not contact AGC without user instructions.
+
+Within a permitted automated session, fetch only the views needed, once, at least
+six seconds apart (the previously observed robots crawl delay); recheck current
+robots instructions when accessible. A site refusal ends the attempt regardless
+of time. Time-window compliance alone never establishes access or permission.
 
 For a past version, add `ValidDate=YYYYMMDD` to the provision view, e.g.
 `/Act/CA2021?ProvIds=pr146-&ValidDate=20220101`. Record the page's status line (such as
