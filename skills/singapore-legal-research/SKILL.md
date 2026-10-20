@@ -21,9 +21,10 @@ tool does not establish that browsing is unavailable. Confirm a route works by
 opening a needed official source and reading its content; record failures and any
 remaining access limits. Respect tool-enforced stops and site blocks. Do not require
 browser setup for prose-only proofreading or work expressly limited to supplied files.
-Apply publisher conditions before collecting source text: a real browser is not
-automatically exempt from SSO's automated-extraction window. See
-[access and retrieval conduct](references/sources-authority.md#access-and-retrieval-conduct).
+Apply publisher conditions before collecting source text. Under the maintainer policy in
+[access and retrieval conduct](references/sources-authority.md#access-and-retrieval-conduct),
+an agent-operated real browser may read the SSO provisions a question needs at any hour,
+at reading pace; scripted or bulk SSO collection stays within 3 a.m. to 7 a.m. Singapore time.
 If SSO cannot be used, continue with [independent statutory sources](references/statute-source-fallbacks.md),
 including eGazette, authorised LawNet access and version-labelled repository copies.
 Use an available web reader or authorised retrieval tool for those sources if no

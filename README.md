@@ -134,12 +134,15 @@ The skill retrieves within each site's terms, in this order:
 3. **Scripted requests**, only within each site's terms. SSO permits automated
    extraction only from 3 a.m. to 7 a.m. Singapore time.
 
-That SSO window concerns automated extraction, not ordinary manual browsing.
-The skill also applies it to agent-driven collection through a browser: the
+That SSO window concerns automated extraction, not ordinary manual browsing. The
 [published conditions](https://sso.agc.gov.sg/Terms-of-Use) contain no express
-agent-browser or small-volume exemption. Applicable AGC permission may support a
-different route. Outside the window, research continues through independent sources
-or user-saved copies; successful page loading alone does not settle the terms question.
+agent-browser or small-volume exemption, so the maintainer has adopted a policy and
+recorded it as such: an agent-operated real browser may read the provisions a question
+needs at any hour, at reading pace, keeping private evidence copies only; scripted or
+bulk collection stays within the window. This is the maintainer's reading, not AGC's
+classification, and applicable AGC permission would supersede it. Without a working
+browser outside the window, research continues through independent sources or
+user-saved copies.
 
 The agent never bypasses a block or challenge; if a site refuses access, it stops and
 moves to the next route. See [access and retrieval conduct](skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
