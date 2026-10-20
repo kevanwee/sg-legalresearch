@@ -47,6 +47,77 @@ ELIT = ('<html><body><div class="HN-CaseName text-center font-weight-bold ">Synt
 
 
 class ElitigationTests(unittest.TestCase):
+    def test_separate_sections_never_extend_the_last_paragraph(self):
+        body = judg("Judg-1", "1&emsp;First synthetic paragraph.") + judg("Judg-1", "2&emsp;Final synthetic paragraph.")
+        for title in ("Annexes", "Annex 1: History", "Appendix A", "Appendices", "Annexure 1", "Schedule 1", "Attachment A"):
+            for signature in ("", judg("Judg-Sign", "Synthetic Judge")):
+                page = body + signature + judg("Judg-Heading-1", title) + judg("Judg-Quote-List", "A.1 Synthetic annex only.")
+                with self.subTest(title=title, signature=bool(signature)):
+                    result = r.converters.extract_elitigation(page)
+                    self.assertEqual(result["opinions"][0]["text"], "[1] First synthetic paragraph.\n[2] Final synthetic paragraph.\n")
+                    self.assertTrue(any("A.1 Synthetic annex only." == b["text"] for b in result["trailing"]))
+                    self.assertTrue(any("separate section" in w for w in result["report"]["warnings"]))
+                    self.assertEqual(sum(result["report"]["block_counts"].values()), sum(result["report"]["source_block_classes"].values()))
+
+    def test_signature_requires_new_author_to_resume_body(self):
+        page = (judg("Judg-1", "1&emsp;Majority.") + judg("Judg-Sign", "Synthetic Judge A")
+                + judg("Judg-1", "1&emsp;Ambiguous trailing number.")
+                + judg("Judg-Author", "Synthetic Judge B (dissenting):")
+                + judg("Judg-1", "1&emsp;Dissent.") + judg("Judg-1", "A dissent continuation."))
+        result = r.converters.extract_elitigation(page)
+        self.assertEqual([o["text"] for o in result["opinions"]], ["[1] Majority.\n", "[1] Dissent.\nA dissent continuation.\n"])
+        self.assertTrue(any("Ambiguous trailing number." in b["text"] for b in result["trailing"]))
+
+    def test_ordinary_headings_do_not_terminate_opinion(self):
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;First.")
+            + judg("Judg-Heading-1", "Conclusion") + judg("Judg-1", "2&emsp;Second.")
+            + judg("Judg-Quote-0", "A genuine quoted continuation."))
+        self.assertIn("[2] Second.\n    A genuine quoted continuation.", result["opinions"][0]["text"])
+
+    def test_annex_overview_inside_numbered_body_is_not_an_annex(self):
+        page = (judg("Judg-1", "9&emsp;Body.") + judg("Judg-Heading-1", "Annexes")
+                + judg("Judg-1", "10&emsp;I describe the annexes here.")
+                + judg("Judg-Heading-1", "Background") + judg("Judg-1", "11&emsp;More body.")
+                + judg("Judg-Heading-1", "Annex 1: Details")
+                + judg("Judg-Quote-List", "A.1 Actual synthetic annex."))
+        result = r.converters.extract_elitigation(page)
+        self.assertEqual(result["opinions"][0]["text"], "[9] Body.\n[10] I describe the annexes here.\n[11] More body.\n")
+        self.assertEqual(result["trailing"][-1]["text"], "A.1 Actual synthetic annex.")
+
+    def test_unsupported_numbered_section_without_heading_is_quarantined(self):
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Body.")
+            + judg("Judg-Quote-List", "A.1 Separate synthetic analysis."))
+        self.assertEqual(result["opinions"][0]["text"], "[1] Body.\n")
+        self.assertTrue(any("unsupported section numbering" in w for w in result["report"]["warnings"]))
+
+    def test_unknown_blocks_are_preserved_and_reported(self):
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Body.")
+            + judg("Judg-Unfamiliar", "Synthetic unfamiliar material."))
+        self.assertEqual(result["report"]["block_counts"]["unrecognised"], 1)
+        self.assertEqual(result["trailing"][0]["text"], "Synthetic unfamiliar material.")
+        self.assertTrue(any("unrecognised" in w for w in result["report"]["warnings"]))
+
+    def test_size_diagnostic_does_not_truncate_a_valid_long_paragraph(self):
+        long = "Synthetic lengthy reasoning. " * 150
+        result = r.converters.extract_elitigation(judg("Judg-1", "1&emsp;Short.") + judg("Judg-1", "2&emsp;" + long))
+        self.assertIn(long.strip(), result["opinions"][0]["text"])
+        self.assertTrue(any("unusually large" in w for w in result["report"]["warnings"]))
+
+    def test_cli_retains_trailing_material_and_rejects_colliding_outputs(self):
+        with tempfile.TemporaryDirectory() as folder:
+            page = Path(folder) / "page.html"
+            page.write_text(judg("Judg-1", "1&emsp;Body.") + judg("Judg-Heading-1", "Annex 1")
+                            + judg("Judg-Quote-List", "A.1 Synthetic annex text."), encoding="utf-8")
+            out = Path(folder) / "body.txt"
+            with self.assertRaisesRegex(ValueError, "distinct"):
+                r.extract_elitigation_page(page, out, trailing_out=out)
+            self.assertFalse(out.exists())
+            result = r.extract_elitigation_page(page, out)
+            self.assertEqual(out.read_text(encoding="utf-8"), "[1] Body.\n")
+            self.assertIn("A.1 Synthetic annex text.", Path(result["trailing_file"]).read_text(encoding="utf-8"))
+            with self.assertRaises(FileExistsError):
+                r.extract_elitigation_page(page, out)
+
     def test_structure_notes_and_separate_opinions(self):
         result = r.converters.extract_elitigation(ELIT)
         self.assertEqual(result["header"], "Synthetic Alpha Pte Ltd v Synthetic Beta Pte Ltd [2099] SGCA 1")
