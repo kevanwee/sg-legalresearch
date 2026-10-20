@@ -30,6 +30,19 @@ including eGazette, authorised LawNet access and version-labelled repository cop
 Use an available web reader or authorised retrieval tool for those sources if no
 browser works; verify the operative version separately from obtaining the text.
 
+## Keep the matter out of searches
+
+A search query leaves this machine. Search with legal concepts, statutes and authorities only:
+never a client, counterparty or person's name, a codename, contact details, identification
+numbers, deal terms, or a fact pattern that would identify the matter. Rephrase "Can Acme
+exclude terms implied into its supply contract with Beta?" as "exclusion of terms implied in
+fact in a commercial supply contract under Singapore law". When the matter has known names,
+keep them one per line in a private matter-terms file outside source control and pass it to
+`init --matter-terms`. Screen each query with `scripts/research.py screen "<query>" --run <run>`
+(or `--terms <file>`) before sending it, and send nothing that fails. `check` screens every
+query in the search log again and fails the run if one leaked. The screen catches direct
+identifiers and listed terms only; generalising away distinctive facts remains your duty.
+
 ## Select the work
 
 Infer the mode from the request; combine modes where necessary. Ask only for facts

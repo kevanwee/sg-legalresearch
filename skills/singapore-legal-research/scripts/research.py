@@ -41,6 +41,44 @@ KINDS = ("case", "legislation", "hansard", "bill", "secondary", "other")
 ASSESSMENTS = ("supported", "qualified", "unsupported", "unresolved", "editorial")
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,63}\Z")
+# Direct identifiers that never belong in a query sent to a search service. Amounts and case
+# numbers are left out: statutory thresholds and reported cases are legitimate search terms.
+IDENTIFIERS = {
+    "NRIC or FIN number": re.compile(r"\b[STFGM]\d{7}[A-Z]\b", re.I),
+    "UEN": re.compile(r"\b(?:\d{8,9}[A-Z]|[RST]\d{2}[A-Z]{2}\d{4}[A-Z])\b"),
+    "email address": re.compile(r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b"),
+    "telephone number": re.compile(r"(?<!\d)(?:\+65[\s-]?)?[3689]\d{3}[\s-]?\d{4}(?!\d)"),
+}
+
+
+def read_terms(path):
+    """Known sensitive terms, one per line; '#' starts a comment. An unreadable file is an error."""
+    terms = []
+    for line in Path(path).read_text(encoding="utf-8-sig").splitlines():
+        term = " ".join(line.split("#", 1)[0].split())
+        if term:
+            terms.append(term)
+    return terms
+
+
+def screen_text(text, terms=()):
+    """Direct identifiers and matter terms in text, by category and position, never echoing the match."""
+    text = unicodedata.normalize("NFKC", str(text))
+    findings = [{"category": label, "at": m.start()} for label, pattern in IDENTIFIERS.items()
+                for m in pattern.finditer(text)]
+    for number, term in enumerate(terms, 1):
+        words = r"\s+".join(map(re.escape, unicodedata.normalize("NFKC", term).split()))
+        for m in re.finditer(rf"(?<!\w){words}(?!\w)", text, re.I):
+            findings.append({"category": f"matter term {number}", "at": m.start()})
+    return sorted(findings, key=lambda f: f["at"])
+
+
+def screen(text, terms_file=None):
+    findings = screen_text(text, read_terms(terms_file) if terms_file else ())
+    return {"status": "fail" if findings else "pass", "findings": findings,
+            "terms_checked": terms_file is not None,
+            "meaning": "Direct identifiers and listed terms only. Indirect identifiers, such as a "
+                       "distinctive fact pattern, remain the researcher's responsibility."}
 
 
 def digest(path):
@@ -314,7 +352,7 @@ def locate_quote(root, source_id, pinpoint, words, occurrence=None, quote_id="",
     return record
 
 
-def init_run(root, question, mode, research_date, law_as_at):
+def init_run(root, question, mode, research_date, law_as_at, matter_terms=None):
     iso_date(research_date)
     iso_date(law_as_at)
     if mode not in MODES or not nonempty(question):
@@ -325,6 +363,9 @@ def init_run(root, question, mode, research_date, law_as_at):
             "research_date": research_date, "law_as_at": law_as_at,
             "sources": [], "claims": [], "quotes": [], "inventory": [],
             "search_log": [], "gaps": [], "review": "", "draft": None}
+    if matter_terms is not None:
+        read_terms(matter_terms)
+        data["matter_terms"] = str(Path(matter_terms).resolve())
     write_json(root / "run.json", data, new=True)
     return data
 
@@ -539,9 +580,17 @@ def check_run(root):
             errors.append(f"{label}: {path_key}: {exc}")
             return None
 
+    terms = []
+    if data.get("matter_terms") is not None:
+        try:
+            terms = read_terms(data["matter_terms"])
+        except (OSError, TypeError, ValueError) as exc:
+            errors.append(f"matter terms unreadable, so search queries cannot be screened: {exc}")
     for key, search in searches.items():
         if not all(nonempty(search.get(f)) for f in ("database", "query", "coverage", "result_note")):
             errors.append(f"{key}: incomplete search record")
+        for finding in screen_text(search.get("query", ""), terms):
+            errors.append(f"{key}: query contains a {finding['category']}; search with legal concepts only")
         try:
             iso_date(search.get("searched_on"))
         except ValueError:
@@ -905,6 +954,11 @@ def main(argv=None):
     init.add_argument("--mode", choices=MODES, default="research")
     init.add_argument("--research-date", type=iso_date, required=True)
     init.add_argument("--law-as-at", type=iso_date, required=True)
+    init.add_argument("--matter-terms", type=Path, help="private file of names and terms that must never appear in a search query")
+    scr = sub.add_parser("screen", help="check text for identifiers and matter terms before it leaves this machine")
+    scr.add_argument("text")
+    scr.add_argument("--terms", type=Path)
+    scr.add_argument("--run", type=Path, help="use the matter terms recorded in this ledger")
     snap = sub.add_parser("snapshot", help="copy a retrieved source and record its hashes")
     snap.add_argument("run", type=Path)
     snap.add_argument("file", type=Path)
@@ -960,8 +1014,11 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
-            init_run(args.run, args.question, args.mode, args.research_date, args.law_as_at)
+            init_run(args.run, args.question, args.mode, args.research_date, args.law_as_at, args.matter_terms)
             output = {"created": str(args.run / "run.json")}
+        elif args.command == "screen":
+            terms = args.terms or (load_run(args.run).get("matter_terms") if args.run else None)
+            output = screen(args.text, terms)
         elif args.command == "snapshot":
             output = snapshot(args.run, args.file, args.id, args.title, args.kind, args.url,
                               args.citation, args.version, args.text, args.transformation)

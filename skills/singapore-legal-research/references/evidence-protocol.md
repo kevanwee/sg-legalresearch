@@ -59,7 +59,8 @@ time.** Fill in `retrieved_on` from the actual source retrieval, together with:
 Treatment statuses: `not-checked`, `public-search-limited`, `citator-checked`,
 `adverse-treatment-found`. Each asserted check needs linked `search_log` entries.
 Record `id`, `database`, `query`, `searched_on`, `coverage`, and `result_note` for each
-search. A citator label records the reviewer's declaration, not an API verification.
+search. Queries must pass `screen` before they are sent, and `check` re-screens them against
+the run's matter terms. A citator label records the reviewer's declaration, not an API verification.
 Include the citator, search date and relevant results in the note.
 
 For case evidence, build a reviewed paragraph index and pull the full paragraphs
