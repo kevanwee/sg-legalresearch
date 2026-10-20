@@ -47,6 +47,19 @@ ELIT = ('<html><body><div class="HN-CaseName text-center font-weight-bold ">Synt
 
 
 class ElitigationTests(unittest.TestCase):
+    def test_header_preserves_words_split_across_inline_spans(self):
+        page = ('<div class="HN-CaseName">Synthetic Alpha v Synthetic Be<span>ta</span>'
+                ' &amp; Co<span>mp</span>any</div>' + judg("Judg-1", "1&emsp;Synthetic body."))
+        self.assertEqual(r.converters.extract_elitigation(page)["header"],
+                         "Synthetic Alpha v Synthetic Beta & Company")
+
+    def test_header_separates_real_block_boundaries(self):
+        for middle in ('<div>v</div>', '<br>v<br>', '<p>v</p>', '<table><tr><td>v</td></tr></table>'):
+            page = '<div class="HN-CaseName">Synthetic Alpha Ltd' + middle + 'Synthetic Beta Ltd</div>' + judg("Judg-1", "1&emsp;Body.")
+            with self.subTest(middle=middle):
+                self.assertEqual(r.converters.extract_elitigation(page)["header"],
+                                 "Synthetic Alpha Ltd v Synthetic Beta Ltd")
+
     def test_separate_sections_never_extend_the_last_paragraph(self):
         body = judg("Judg-1", "1&emsp;First synthetic paragraph.") + judg("Judg-1", "2&emsp;Final synthetic paragraph.")
         for title in ("Annexes", "Annex 1: History", "Appendix A", "Appendices", "Annexure 1", "Schedule 1", "Attachment A"):

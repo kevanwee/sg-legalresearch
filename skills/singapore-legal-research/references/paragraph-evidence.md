@@ -47,6 +47,8 @@ opinion's author and paragraph range, and a reconciliation of numbered blocks,
 spacers and continuations. Review any warnings, then snapshot the saved page with
 `--text` set to the output file and `--transformation` set to the reported
 transformation. The command never fetches a page and never overwrites a file.
+The case-header summary preserves adjacent inline text and inserts separators at
+block boundaries; still verify the case name and citation against the saved source.
 
 Signatures, counsel and end markers close an opinion; a new author line can start
 another opinion after them. Annex/Appendix/Annexure/Schedule/Attachment headings and
