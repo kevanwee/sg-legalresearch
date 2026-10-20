@@ -301,8 +301,16 @@ def locate_quote(root, source_id, pinpoint, words, occurrence=None, quote_id="",
     if occurrence is not None and not 1 <= occurrence <= len(hits):
         raise ValueError(f"--occurrence must be between 1 and {len(hits)}")
     match = hits[(occurrence or 1) - 1]
-    return {"id": quote_id, "claim_id": claim_id, "source_id": source_id, "pinpoint": pinpoint,
-            "text": match.group(0), "start": match.start(), "end": match.end(), "pinpoint_reviewed": False}
+    record = {"id": quote_id, "claim_id": claim_id, "source_id": source_id, "pinpoint": pinpoint,
+              "text": match.group(0), "start": match.start(), "end": match.end(), "pinpoint_reviewed": False}
+    if source.get("kind") == "case" and has_subparagraph(pinpoint):
+        record["scope"] = {
+            "kind": "full-numbered-paragraphs", "requested_pinpoint": pinpoint,
+            "searched_paragraphs": [p["paragraph"] for p in passages],
+            "warning": "Sub-paragraph boundaries are not indexed. The search covers the full parent "
+                       "paragraph(s), so sibling text may match. Manually verify the stated sub-paragraph "
+                       "before setting pinpoint_reviewed=true."}
+    return record
 
 
 def init_run(root, question, mode, research_date, law_as_at):
