@@ -134,6 +134,13 @@ The skill retrieves within each site's terms, in this order:
 3. **Scripted requests**, only within each site's terms. SSO permits automated
    extraction only from 3 a.m. to 7 a.m. Singapore time.
 
+That SSO window concerns automated extraction, not ordinary manual browsing.
+The skill also applies it to agent-driven collection through a browser: the
+[published conditions](https://sso.agc.gov.sg/Terms-of-Use) contain no express
+agent-browser or small-volume exemption. Applicable AGC permission may support a
+different route. Outside the window, research continues through independent sources
+or user-saved copies; successful page loading alone does not settle the terms question.
+
 The agent never bypasses a block or challenge; if a site refuses access, it stops and
 moves to the next route. See [access and retrieval conduct](skills/singapore-legal-research/references/sources-authority.md#access-and-retrieval-conduct).
 
@@ -424,6 +431,13 @@ Practice Directions and formatting checks, and professional sign-off before fili
 serving or sending. Any unavailable citator access remains an explicit research limit.
 
 ## Development and validation
+
+The saved-page judgment converter supports the modern eLitigation `div.Judg-*`
+structure, including list continuations and separate opinions. Detached paragraph
+labels are refused before output; preserve the original and use a reviewed extraction
+that restores the actual boundaries. Older `p.Judg-*` layouts currently need a
+documented manual extraction. Review conversion warnings and complete paragraph text
+before confirming boundaries; paragraph counts alone cannot prove completeness.
 
 ```sh
 python -m unittest discover -s tests -v
