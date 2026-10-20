@@ -47,6 +47,11 @@ opinion's author and paragraph range, and a reconciliation of numbered blocks,
 spacers and continuations. Review any warnings, then snapshot the saved page with
 `--text` set to the output file and `--transformation` set to the reported
 transformation. The command never fetches a page and never overwrites a file.
+Notes retain the source marker number, even with gaps or out-of-order popups. The
+report's `note_reconciliation` lists reference/definition counts, missing or duplicate
+definitions, unreferenced notes and conflicting popup targets. Ambiguous unlabelled
+text is retained as `[note: unlabelled]` with a warning, never assigned a new number.
+Resolve warnings against the original; repeated references do not imply duplicate definitions.
 The case-header summary preserves adjacent inline text and inserts separators at
 block boundaries; still verify the case name and citation against the saved source.
 
