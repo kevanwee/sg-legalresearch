@@ -79,7 +79,7 @@ class _Judgment(HTMLParser):
             elif self.cls is not None:
                 self.depth += 1
         elif tag == "br" and self.cls:
-            self.buf.append(" ")
+            self.buf.append("\n")
 
     def handle_endtag(self, tag):
         if self.skip:
@@ -236,6 +236,13 @@ def extract_elitigation(html):
             count("heading")
             report["excluded_blocks"] += 1
             continue
+        # Do not turn a detached paragraph label into continuation prose. In
+        # particular, a final label has no later numbering gap to expose it.
+        # Preserve <br> boundaries until this check, before whitespace cleanup.
+        if cls == "Judg-1" and re.search(
+                r"^\s*(?:\[[1-9]\d*\]|[1-9]\d*)[\t \u00a0\u2000-\u200a]*\r?$", raw, re.M):
+            raise ValueError("paragraph label on its own line in Judg-1; compare the saved HTML "
+                             "and use an extraction that preserves the label with its paragraph text")
         # An unsupported labelled section must not masquerade as unnumbered prose.
         if current and current["numbers"] and re.match(r"^\[?[A-Z]\.[1-9]\d*\]?\s", text):
             closed = "unsupported section numbering"

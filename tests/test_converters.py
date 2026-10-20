@@ -47,6 +47,36 @@ ELIT = ('<html><body><div class="HN-CaseName text-center font-weight-bold ">Synt
 
 
 class ElitigationTests(unittest.TestCase):
+    def test_detached_terminal_label_refused_before_any_output(self):
+        for label in ("2", "[2]", "\u20032\u00a0", "36"):
+            for tail in ("", judg("Judg-1", "Synthetic second paragraph.")):
+                page = judg("Judg-1", "1&emsp;Synthetic first paragraph.") + judg("Judg-1", label) + tail
+                with self.subTest(label=label, tail=tail), tempfile.TemporaryDirectory() as folder:
+                    source, output = Path(folder) / "page.html", Path(folder) / "body.txt"
+                    source.write_text(page, encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "label on its own line"):
+                        r.extract_elitigation_page(source, output)
+                    self.assertEqual(sorted(p.name for p in Path(folder).iterdir()), ["page.html"])
+
+    def test_label_detached_by_html_break_or_newline_is_refused(self):
+        for boundary in ("<br>", "<br/>", "\n", "\r\n"):
+            page = judg("Judg-1", "1&emsp;Synthetic first paragraph.") + judg("Judg-1", "2" + boundary + "Synthetic second paragraph.")
+            with self.subTest(boundary=boundary), self.assertRaisesRegex(ValueError, "label on its own line"):
+                r.converters.extract_elitigation(page)
+
+    def test_previously_converted_mixed_label_text_cannot_be_indexed_or_quoted(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / "case.txt"
+            source.write_text("[1] Synthetic first paragraph.\n2\nSynthetic second paragraph.\n", encoding="utf-8")
+            run = root / "run"
+            r.init_run(run, "Synthetic wrong pinpoint regression", "research", "2026-10-20", "2026-10-20")
+            r.snapshot(run, source, "S1", "Synthetic case", "case", "https://example.invalid/case", "SYNTHETIC", "test")
+            with self.assertRaisesRegex(ValueError, "label on its own line"):
+                r.index_paragraphs(run, "S1", "bracketed", "Synthetic review cannot override a broken boundary.")
+            with self.assertRaises(ValueError):
+                r.locate_quote(run, "S1", "[1]", "Synthetic second paragraph.")
+
     def test_note_source_numbers_survive_gaps_and_out_of_order_definitions(self):
         page = judg("Judg-1", "1&emsp;Synthetic reasoning." + note(7, "Seven.") + note(2, "Two."))
         result = r.converters.extract_elitigation(page)

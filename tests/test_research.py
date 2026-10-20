@@ -300,7 +300,8 @@ class EvidenceTests(unittest.TestCase):
                 r.build_paragraphs(text, style)
 
     def test_bare_labels_cannot_be_merged_into_previous_paragraph(self):
-        for style, first, bare, last in (("bracketed", "[1]", "[2]", "[3]"), ("numbered", "35", "36", "37")):
+        for style, first, bare, last in (("bracketed", "[1]", "[2]", "[3]"), ("numbered", "35", "36", "37"),
+                                        ("bracketed", "[1]", "2", "[3]"), ("numbered", "35", "[36]", "37")):
             for ending in ("\n", "\r\n"):
                 examples = [
                     first + " First paragraph." + ending + bare + ending + "Second paragraph." + ending + last + " Third paragraph.",

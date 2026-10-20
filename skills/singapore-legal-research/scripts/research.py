@@ -159,7 +159,8 @@ def build_paragraphs(text, style):
                          "and use a documented body-only extraction before indexing")
     label = r"\[([1-9]\d*)\]" if style == "bracketed" else r"([1-9]\d*)"
     horizontal = r"[\t \u00a0\u2000-\u200a]"
-    if re.search(r"^" + horizontal + "*" + label + horizontal + r"*\r?$", text, re.M):
+    bare_label = r"(?:\[[1-9]\d*\]|[1-9]\d*)"
+    if re.search(r"^" + horizontal + "*" + bare_label + horizontal + r"*\r?$", text, re.M):
         raise ValueError("paragraph label on its own line; use an extraction that preserves paragraph boundaries")
     lettered = r"\[[1-9]\d*[A-Za-z]\]" if style == "bracketed" else r"[1-9]\d*[A-Za-z]"
     if re.search(r"^" + horizontal + "*" + lettered + r"(?=" + horizontal + r"|\r?$)", text, re.M):
