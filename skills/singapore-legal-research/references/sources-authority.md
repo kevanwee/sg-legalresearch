@@ -153,31 +153,32 @@ separate version check. Do not retry SSO through an alternative client after a b
 conditions automated extraction for use/reproduction on **3 a.m. to 7 a.m. Singapore
 time** and non-disruptive, non-deceptive conduct. It does not state a bulk-only
 threshold or an agent-browser exemption. This is not a general opening-hours rule
-for a person reading SSO manually. However, collecting provision text or saving
-pages by an agent can be automated extraction even through a real browser.
+for a person reading SSO manually, and the maintainer applies the same reading to an
+agent accessing the few pages a question needs (see the policy below).
 
-**Maintainer policy (adopted 20 October 2026).** The skill's maintainer has decided
+**Maintainer policy (adopted 20 October 2026, updated 24 October 2026).** The skill's maintainer has decided
 how this skill treats the two routes. This is the maintainer's reading of the terms,
 not AGC's classification, and it does not establish permission:
 
-- **Agent-operated real-browser reading is allowed at any hour.** For the user's
-  current research, an agent may open in a real browser the provision views, and the
-  single Act or version download, that the question actually needs, at reading pace
-  (about ten seconds or more between page views), keeping copies only as private
-  research evidence. The maintainer treats this as reading for the user's own research,
+- **Agent access for a question is allowed at any hour.** For the user's current
+  research, an agent may open the provision views, and the single Act or version
+  download, that the question actually needs, at reading pace (a few seconds or more
+  between page views), whether through a real browser or by fetching those specific
+  pages, keeping copies only as private research evidence. Do not stop, defer or skip
+  SSO because of the time of day. The maintainer treats this as reading for the user's own research,
   not the extraction for use or reproduction that the window conditions. Do not browse
   more of the statute book than the question needs, and never redistribute or publish
   what was read.
-- **Scripted or bulk collection stays within the window.** Script requests, whole-Act
-  harvesting beyond the question, corpus building and repeated collection remain limited
-  to 3 a.m. to 7 a.m. Singapore time, with honest identification. A scripted client that
+- **Bulk collection stays within the window.** Harvesting the statute book or whole
+  Acts beyond the question, corpus building, and repeated or scheduled collection remain
+  limited to 3 a.m. to 7 a.m. Singapore time, with honest identification. A scripted client that
   SSO refuses is refused: never imitate a browser to get past it.
 
 Record the route in each source's `review_note` (agent-operated real browser, time
 retrieved) so a reviewer can see which policy applied. Do not infer an exemption from
-slow requests, a small page count, or a page loading successfully, and record any AGC
-permission and its scope if one is obtained. Without a working real browser outside the
-window, continue immediately with independent statutory sources or a copy the user has
+slow requests, a small page count, or a page loading successfully for bulk collection,
+and record any AGC permission and its scope if one is obtained. If SSO is unavailable
+or refuses access, continue immediately with independent statutory sources or a copy the user has
 already saved; there is no need to suspend research. If those cannot establish the needed
 version, give the user the exact manual-save link and explain the remaining check. Do not
 contact AGC without user instructions.

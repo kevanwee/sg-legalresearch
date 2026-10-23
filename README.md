@@ -131,17 +131,17 @@ The skill retrieves within each site's terms, in this order:
    successful browsing does not verify the current run's live access.
 2. **Pages you save from your browser**, if no agent browser is available or a page is
    refused. The agent lists the exact links to save.
-3. **Scripted requests**, only within each site's terms. SSO permits automated
-   extraction only from 3 a.m. to 7 a.m. Singapore time.
+3. **Scripted requests** for the specific pages a question needs, within each site's
+   terms. SSO's 3 a.m. to 7 a.m. Singapore-time window applies to bulk collection.
 
 That SSO window concerns automated extraction, not ordinary manual browsing. The
 [published conditions](https://sso.agc.gov.sg/Terms-of-Use) contain no express
 agent-browser or small-volume exemption, so the maintainer has adopted a policy and
-recorded it as such: an agent-operated real browser may read the provisions a question
-needs at any hour, at reading pace, keeping private evidence copies only; scripted or
-bulk collection stays within the window. This is the maintainer's reading, not AGC's
-classification, and applicable AGC permission would supersede it. Without a working
-browser outside the window, research continues through independent sources or
+recorded it as such: an agent may access the provisions a question needs at any hour,
+at reading pace, keeping private evidence copies only; bulk collection (statute-book
+harvesting, corpus building, repeated or scheduled runs) stays within the window. This is the maintainer's reading, not AGC's
+classification, and applicable AGC permission would supersede it. If SSO is
+unavailable or refuses access, research continues through independent sources or
 user-saved copies.
 
 The agent never bypasses a block or challenge; if a site refuses access, it stops and
