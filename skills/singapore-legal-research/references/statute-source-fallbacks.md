@@ -7,7 +7,7 @@ guarantees access to every Singapore instrument or its operative historical vers
 ## Choose an independent source
 
 After [browser discovery](sources-authority.md#browser-discovery), if SSO is
-unavailable, or automated collection is outside its permitted time window, continue
+unavailable or refuses access, continue
 statutory research through the sources below. Choose by the
 instrument, relevant date and available access; do not exhaust irrelevant databases
 or wait for SSO before trying an independent publisher. Try relevant independent
